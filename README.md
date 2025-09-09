@@ -1,6 +1,6 @@
 # Ada Commerce — Núcleo sem API
 
-**Problema**: implementar o núcleo de um e‑commerce educacional para cadastro de clientes/produtos e fluxo de pedidos (itens, finalização, pagamento, entrega), sem REST nesta etapa.  
+**Problema**: implementar o núcleo de um e‑commerce educacional para cadastro de clientes/produtos e fluxo de pedidos (itens, finalização, pagamento, entrega), sem REST nesta etapa.
 **Meta**: base limpa, testável e extensível.
 
 ## Escopo
@@ -37,6 +37,18 @@ scripts/               # Automação de labels e issues
 
 ### Fluxo alto nível
 ![Fluxo](docs/diagrams/data-flow.svg)
+
+### Diagrama de Classes
+![Diagrama de Classes](docs/diagrams/ClassDiagram-Ada-Commerce.svg)
+
+### Casos de Uso
+![Casos de Uso](docs/diagrams/UseCase-Ada-Commerce.svg)
+
+### Diagrama de Sequencia - Pedido
+![Sequencia - Pedido](docs/diagrams/SequenceDiagram-Pedido-Ada-Commerce.svg)
+
+### Diagrama de Sequencia - Entrega e Pagamento
+![Sequencia - Entrega e Pagamento](docs/diagrams/SequenceDiagram-Entrega-Pagamento-Ada-Commerce.svg)
 
 ## Como usar localmente
 > Pré‑requisitos: JDK 17, Git, GitHub CLI (`gh`).
