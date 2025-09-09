@@ -1,0 +1,7 @@
+name: Bug
+description: Defeito
+labels: ["bug"]
+body:
+  - type: textarea
+    id: steps
+    attributes: { label: Passos para reproduzir }

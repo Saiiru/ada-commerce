@@ -1,0 +1,10 @@
+name: Story
+description: História de usuário
+labels: ["story"]
+body:
+  - type: textarea
+    id: story
+    attributes: { label: História, placeholder: "Como <papel>, quero <capacidade> para <benefício>." }
+  - type: textarea
+    id: acceptance
+    attributes: { label: Critérios de aceite, placeholder: "- [ ] ..." }

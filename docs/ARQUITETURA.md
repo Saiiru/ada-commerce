@@ -1,0 +1,1 @@
+# Arquitetura – ver README e diagramas em docs/diagrams

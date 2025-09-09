@@ -1,0 +1,11 @@
+name: Task
+description: Tarefa técnica
+labels: ["task"]
+body:
+  - type: input
+    id: scope
+    attributes: { label: Escopo, placeholder: "ex: VO Money" }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes: { label: Critérios de aceite, placeholder: "- [ ] ..." }

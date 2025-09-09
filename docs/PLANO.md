@@ -1,0 +1,1 @@
+# Plano e Requisitos – ver README para escopo e regras
