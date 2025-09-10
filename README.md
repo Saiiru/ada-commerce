@@ -20,7 +20,7 @@
 ```
 src/
   main/java/com/ada/commerce/
-    domain/            # Entidades, VOs, Enums, Portas, Eventos
+    model/            # Entidades, VOs, Enums, Portas, Eventos
     application/       # Casos de uso + DTOs
     infrastructure/    # Adapters (memória, notificador, eventos, clock/id)
     interfaceadapters/ # CLI de demonstração (próxima etapa)
