@@ -21,6 +21,6 @@ tasks.test { useJUnitPlatform() }
 
 // a classe Main precisa existir neste pacote
 application {
-  application { mainClass.set("com.ada.commerce.controllers.cli.Main") }
+  application { mainClass.set("com.ada.commerce.Main") }
 }
 
