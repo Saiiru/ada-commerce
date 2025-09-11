@@ -1,4 +1,4 @@
-package com.ada.commerce.controllers.cli;
+package com.ada.commerce;
 
 public final class Main {
   public static void main(String[] args) {
