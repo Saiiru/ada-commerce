@@ -11,11 +11,11 @@ public class Order {
   private LocalDateTime createdAt;
   private OrderStatus status;
 
-  Order(Client owner, ArrayList<OrderItem> items) {
+  public Order(Client owner, ArrayList<OrderItem> items, LocalDateTime createdAt, OrderStatus status) {
     this.owner = owner;
     this.items = items;
-    this.createdAt = LocalDateTime.now();
-    this.status = OrderStatus.ABERTO;
+    this.createdAt = createdAt;
+    this.status = status;
   }
 
   public BigDecimal total() {
@@ -24,8 +24,9 @@ public class Order {
       .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
-  public void add(OrderItem item) {
+  public Order add(OrderItem item) {
     items.add(item);
+    return this;
   }
 
   public void remove(OrderItem item) {
