@@ -7,5 +7,5 @@ import java.util.ArrayList;
 
 public interface CreateOrderService {
 
-  Order execute(Client owner, ArrayList<OrderItem> items);
+  Order execute(Customer owner, ArrayList<OrderItem> items);
 }

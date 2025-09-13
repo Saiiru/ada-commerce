@@ -1,10 +1,8 @@
 package com.ada.commerce.model;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public class OrderItem {
-  private Integer id;
   private Product product;
   private Order order;
   private Integer quantity;
@@ -19,10 +17,6 @@ public class OrderItem {
 
   public BigDecimal subTotal() {
     return sellingPrice.multiply(BigDecimal.valueOf(quantity));
-  }
-
-  public Integer getId() {
-    return id;
   }
 
   public Product getProduct() {
@@ -55,5 +49,14 @@ public class OrderItem {
 
   protected void setSellingPrice(BigDecimal sellingPrice) {
     this.sellingPrice = sellingPrice;
+  }
+
+  @Override
+  public String toString() {
+    return "OrderItem{" +
+      "product=" + product +
+      ", quantity=" + quantity +
+      ", sellingPrice=" + sellingPrice +
+      '}';
   }
 }

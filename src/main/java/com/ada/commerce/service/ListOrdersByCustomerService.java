@@ -4,7 +4,7 @@ import com.ada.commerce.model.Order;
 
 import java.util.List;
 
-public interface ListAllOrdersService {
+public interface ListOrdersByCustomerService {
 
-  List<Order> execute();
+  List<Order> execute(Customer owner);
 }

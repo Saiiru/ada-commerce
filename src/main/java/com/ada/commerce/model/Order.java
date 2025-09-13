@@ -2,16 +2,16 @@ package com.ada.commerce.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.List;
 
 public class Order {
   private Integer id;
-  private Client owner;
-  private ArrayList<OrderItem> items;
+  private Customer owner;
+  private List<OrderItem> items;
   private LocalDateTime createdAt;
   private OrderStatus status;
 
-  public Order(Client owner, ArrayList<OrderItem> items, LocalDateTime createdAt, OrderStatus status) {
+  public Order(Customer owner, List<OrderItem> items, LocalDateTime createdAt, OrderStatus status) {
     this.owner = owner;
     this.items = items;
     this.createdAt = createdAt;
@@ -29,19 +29,30 @@ public class Order {
     return this;
   }
 
-  public void remove(OrderItem item) {
-    items.remove(item);
+  public Order changeQuantity(OrderItem item, Integer newQuantity) {
+    item.setQuantity(newQuantity);
+    return this;
   }
 
-  public void changeQuantity(OrderItem item, Integer newQuantity) {
-    item.setQuantity(newQuantity);
+  public Order changeStatus(OrderStatus newStatus) {
+    this.status = newStatus;
+    return this;
+  }
+
+  public Order remove(OrderItem item) {
+    items.remove(item);
+    return this;
+  }
+
+  public Order setId(Integer id) {
+    this.id = id;
   }
 
   public Integer getId() {
     return id;
   }
 
-  public Client getOwner() {
+  public Customer getOwner() {
     return owner;
   }
 
@@ -53,7 +64,18 @@ public class Order {
     return status;
   }
 
-  public ArrayList<OrderItem> getItems() {
-    return items;
+  public List<OrderItem> getItems() {
+    return List.copyOf(items);
+  }
+
+  @Override
+  public String toString() {
+    return "Order{" +
+      "id=" + id +
+      ", owner=" + owner +
+      ", items=" + items +
+      ", createdAt=" + createdAt +
+      ", status=" + status +
+      '}';
   }
 }

@@ -5,5 +5,5 @@ import com.ada.commerce.model.OrderItem;
 
 public interface RemoveOrderItemService {
 
-  Order execute(Order order, OrderItem orderItem);
+  Order execute(OrderItem orderItem);
 }
