@@ -1,10 +1,12 @@
 package com.ada.commerce.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Order {
+public class Order implements Serializable {
   private Integer id;
   private Customer owner;
   private List<OrderItem> items;
@@ -13,9 +15,10 @@ public class Order {
 
   public Order(Customer owner, List<OrderItem> items, LocalDateTime createdAt, OrderStatus status) {
     this.owner = owner;
-    this.items = items;
     this.createdAt = createdAt;
     this.status = status;
+    this.items = new ArrayList<>();
+    items.forEach(this::add);
   }
 
   public BigDecimal total() {
@@ -26,6 +29,7 @@ public class Order {
 
   public Order add(OrderItem item) {
     items.add(item);
+    item.setOrder(this);
     return this;
   }
 
@@ -41,11 +45,13 @@ public class Order {
 
   public Order remove(OrderItem item) {
     items.remove(item);
+    item.setOrder(null);
     return this;
   }
 
   public Order setId(Integer id) {
     this.id = id;
+    return this;
   }
 
   public Integer getId() {

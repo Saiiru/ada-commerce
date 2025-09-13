@@ -5,8 +5,6 @@ import com.ada.commerce.model.OrderItem;
 import com.ada.commerce.model.OrderStatus;
 import com.ada.commerce.repository.OrderRepository;
 
-import java.math.BigDecimal;
-
 public class ChangeOrderItemQuantityServiceImpl implements ChangeOrderItemQuantityService {
 
   private final OrderRepository repository;

@@ -1,5 +1,6 @@
 package com.ada.commerce.repository;
 
+import com.ada.commerce.model.Customer;
 import com.ada.commerce.model.Order;
 
 import java.io.*;
@@ -10,7 +11,16 @@ public class OrderRepository implements Repository<Order, Integer> {
 
   private List<Order> orders = new ArrayList<>();
   private int nextId = 0;
-  private final File file = new File("orders.dat");
+  private File file;
+
+  public OrderRepository() {
+    this(new File("build/data/orders.dat"));
+  }
+
+  public OrderRepository(File file) {
+    this.file = file;
+    loadFromFile();
+  }
 
   @Override
   public Order save(Order order) {
@@ -46,9 +56,16 @@ public class OrderRepository implements Repository<Order, Integer> {
   }
 
   private void persistToFile() {
-    try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-      out.writeInt(nextId);
-      out.writeObject(orders);
+    try {
+      File parentDir = file.getParentFile();
+      if (parentDir != null && !parentDir.exists()) {
+        parentDir.mkdirs();
+      }
+
+      try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+        out.writeInt(nextId);
+        out.writeObject(orders);
+      }
     } catch (IOException e) {
       throw new RuntimeException("Erro ao salvar orders no arquivo", e);
     }
@@ -56,7 +73,9 @@ public class OrderRepository implements Repository<Order, Integer> {
 
   @SuppressWarnings("unchecked")
   private void loadFromFile() {
-    if (!file.exists()) return;
+    if (!file.exists()) {
+      return;
+    }
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
       nextId = in.readInt();
       orders = (List<Order>) in.readObject();

@@ -1,8 +1,9 @@
 package com.ada.commerce.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class OrderItem {
+public class OrderItem implements Serializable {
   private Product product;
   private Order order;
   private Integer quantity;

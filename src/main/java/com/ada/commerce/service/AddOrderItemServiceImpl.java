@@ -3,6 +3,7 @@ package com.ada.commerce.service;
 import com.ada.commerce.model.Order;
 import com.ada.commerce.model.OrderItem;
 import com.ada.commerce.model.OrderStatus;
+import com.ada.commerce.model.Product;
 import com.ada.commerce.repository.OrderRepository;
 
 import java.math.BigDecimal;
