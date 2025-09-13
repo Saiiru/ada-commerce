@@ -9,7 +9,11 @@ import java.math.BigDecimal;
 
 public class AddOrderItemServiceImpl implements AddOrderItemService {
 
-  OrderRepository repository = new OrderRepository();
+  OrderRepository repository;
+
+  public AddOrderItemServiceImpl(OrderRepository repository) {
+    this.repository = repository;
+  }
 
   @Override
   public Order execute(Order order, Product product, Integer quantity, BigDecimal sellingPrice) {
@@ -30,6 +34,8 @@ public class AddOrderItemServiceImpl implements AddOrderItemService {
     }
 
     OrderItem newItem = new OrderItem(product, order, quantity, sellingPrice);
-    return new order.add(newItem);
+    Order newOrder = order.add(newItem);
+    repository.update(newOrder);
+    return newOrder;
   }
 }
