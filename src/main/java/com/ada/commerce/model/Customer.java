@@ -1,7 +1,7 @@
 package com.ada.commerce.model;
 
 import com.ada.commerce.model.vo.Document;
-import com.ada.commerce.model.vo.Email;
+import com.ada.commerce.model.vo.ValidarEmail;
 
 import java.util.UUID;
 import java.time.Instant;
@@ -12,11 +12,11 @@ public class Customer {
   private final String id;
   private String name;
   private final Document document;
-  private Email email;
+  private ValidarEmail email;
   private final Instant createdAt;
   private boolean active;
 
-  public Customer(String name, Document document, Email email) {
+  public Customer(String name, Document document, ValidarEmail email) {
     this.id = UUID.randomUUID().toString();
     this.name = name;
     this.document = document;
@@ -25,7 +25,7 @@ public class Customer {
     this.active = true;
   }
 
-  public Customer(String id, String name, Document document, Email email, Instant createdAt, boolean active) {
+  public Customer(String id, String name, Document document, ValidarEmail email, Instant createdAt, boolean active) {
     if (name == null || name.isBlank()) throw new IllegalArgumentException("Nome inválido");
     this.id = id;
     this.name = name;
@@ -47,7 +47,7 @@ public class Customer {
     return document;
   }
 
-  public Email getEmail() {
+  public ValidarEmail getEmail() {
     return email;
   }
 
@@ -64,7 +64,7 @@ public class Customer {
         this.name = newName;
     }
 
-  public void updateEmail(Email email) { this.email = email; }
+  public void updateEmail(ValidarEmail email) { this.email = email; }
   public void deactivate() { this.active = false; }
   public void activate() { this.active = true; }
 
