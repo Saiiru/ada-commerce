@@ -21,12 +21,6 @@ public class Order implements Serializable {
     items.forEach(this::add);
   }
 
-  public BigDecimal total() {
-    return items.stream()
-      .map(OrderItem::subTotal)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-  }
-
   public Order add(OrderItem item) {
     items.add(item);
     item.setOrder(this);
