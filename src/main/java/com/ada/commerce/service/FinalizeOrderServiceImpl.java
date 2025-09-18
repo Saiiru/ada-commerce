@@ -13,10 +13,12 @@ public class FinalizeOrderServiceImpl implements FinalizeOrderService {
   private OrderRepository repository;
   private NotificationService notificationService;
   private PricingService pricingService;
+  private CreateChargeService createChargeService;
 
   public FinalizeOrderServiceImpl(OrderRepository repository,
                                   NotificationService notificationService,
-                                  PricingService pricingService
+                                  PricingService pricingService,
+                                  CreateChargeService createChargeService
                                   ) {
     this.repository = repository;
     this.notificationService = notificationService;
@@ -34,6 +36,8 @@ public class FinalizeOrderServiceImpl implements FinalizeOrderService {
     if (pricingService.calculateTotal(order).compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalStateException("Só é possível finalizar pedidos com total maior que zero");
     }
+
+    createChargeService.execute(order);
 
     Order finalizedOrder = order.changeStatus(OrderStatus.AGUARDANDO_PAGAMENTO);
     repository.update(finalizedOrder);
