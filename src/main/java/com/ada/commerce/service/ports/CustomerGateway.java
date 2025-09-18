@@ -14,4 +14,3 @@ public interface CustomerGateway {
   Optional<CustomerView> findByDocument(String numericDocument);
   List<CustomerView> findByName(String name); // match exato ou “contém”, a critério do adapter
 }
-
