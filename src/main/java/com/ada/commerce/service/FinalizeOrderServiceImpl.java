@@ -4,6 +4,8 @@ import com.ada.commerce.model.Customer;
 import com.ada.commerce.model.Order;
 import com.ada.commerce.model.OrderStatus;
 import com.ada.commerce.repository.OrderRepository;
+import com.ada.commerce.service.ports.CreateChargeService;
+import com.ada.commerce.service.ports.NotificationService;
 import com.ada.commerce.utils.PricingService;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ public class FinalizeOrderServiceImpl implements FinalizeOrderService {
     this.repository = repository;
     this.notificationService = notificationService;
     this.pricingService = pricingService;
+    this.createChargeService = createChargeService;
   }
 
   @Override
@@ -37,13 +40,13 @@ public class FinalizeOrderServiceImpl implements FinalizeOrderService {
       throw new IllegalStateException("Só é possível finalizar pedidos com total maior que zero");
     }
 
-    createChargeService.execute(order);
+    createChargeService.createCharge(order.getId());
 
     Order finalizedOrder = order.changeStatus(OrderStatus.AGUARDANDO_PAGAMENTO);
     repository.update(finalizedOrder);
 
     Customer owner = finalizedOrder.getOwner();
-    notificationService.execute(owner);
+    notificationService.onAwaitingPayment(order.getId());
 
     return finalizedOrder;
   }

@@ -1,6 +1,13 @@
-package TEST.java.com.ada.commerce.domain;
+package com.ada.commerce.controller;
 
-import TEST.java.com.ada.commerce.domain.*;
+import com.ada.commerce.model.Product;
+import com.ada.commerce.repository.InMemoryProductRepository;
+import com.ada.commerce.repository.ProductRepository;
+import com.ada.commerce.service.CreateProductUseCase;
+import com.ada.commerce.service.GetProductUseCase;
+import com.ada.commerce.service.ListProductsUseCase;
+import com.ada.commerce.service.UpdateProductUseCase;
+
 import java.math.BigDecimal;
 
 public class Main {
@@ -19,7 +26,7 @@ public class Main {
 
     // Listar produtos
     System.out.println("Produtos cadastrados:");
-    listUC.execute().forEach(System.out::println);
+    listUC.execute().forEach(p -> System.out.println(p));
 
     // Buscar produto específico
     System.out.println("\nProduto com SKU 1:");
@@ -29,6 +36,6 @@ public class Main {
     updateUC.execute(2, "Mouse Gamer", new BigDecimal("120.00"));
 
     System.out.println("\nDepois da atualização:");
-    listUC.execute().forEach(System.out::println);
+    listUC.execute().forEach(p -> System.out.println(p));
   }
 }

@@ -6,12 +6,15 @@ import com.ada.commerce.model.Order;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-public class OrderRepository implements Repository<Order, Integer> {
+public class OrderRepository implements Repository<Order, UUID> {
 
-  private List<Order> orders = new ArrayList<>();
-  private int nextId = 0;
-  private File file;
+  private Map<UUID, Order> orders = new ConcurrentHashMap<>();
+  private final File file;
 
   public OrderRepository() {
     this(new File("build/data/orders.dat"));
@@ -24,35 +27,38 @@ public class OrderRepository implements Repository<Order, Integer> {
 
   @Override
   public Order save(Order order) {
-    if (order.getId() != null) throw new IllegalArgumentException("Order já tem ID");
-
-    order.setId(nextId++);
-    orders.add(order);
+    if (orders.containsKey(order.getId())) {
+      throw new IllegalArgumentException("Order com este ID já existe.");
+    }
+    orders.put(order.getId(), order);
     persistToFile();
-
     return order;
   }
 
   @Override
   public Order update(Order order) {
-    orders.set(order.getId(), order);
+    if (!orders.containsKey(order.getId())) {
+      throw new IllegalArgumentException("Order não encontrado para atualização.");
+    }
+    orders.put(order.getId(), order);
+    persistToFile();
     return order;
   }
 
   @Override
   public List<Order> findAll() {
-    return orders;
+    return new ArrayList<>(orders.values());
   }
 
   @Override
-  public Order findById(Integer id) {
+  public Order findById(UUID id) {
     return orders.get(id);
   }
 
   public List<Order> findByCustomer(Customer owner) {
-    return orders.stream()
+    return orders.values().stream()
       .filter(order -> order.getOwner().equals(owner))
-      .toList();
+      .collect(Collectors.toList());
   }
 
   private void persistToFile() {
@@ -63,7 +69,6 @@ public class OrderRepository implements Repository<Order, Integer> {
       }
 
       try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-        out.writeInt(nextId);
         out.writeObject(orders);
       }
     } catch (IOException e) {
@@ -77,10 +82,11 @@ public class OrderRepository implements Repository<Order, Integer> {
       return;
     }
     try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-      nextId = in.readInt();
-      orders = (List<Order>) in.readObject();
+      orders = (Map<UUID, Order>) in.readObject();
     } catch (IOException | ClassNotFoundException e) {
-      throw new RuntimeException("Erro ao carregar orders do arquivo", e);
+      // Silenciosamente ignora se o arquivo estiver corrompido ou em formato antigo, começando do zero.
+      System.err.println("Aviso: Não foi possível carregar os pedidos do arquivo. Começando com um repositório vazio.");
+      orders = new ConcurrentHashMap<>();
     }
   }
 }

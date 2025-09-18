@@ -5,15 +5,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Order implements Serializable {
-  private Integer id;
+  private final UUID id;
   private Customer owner;
   private List<OrderItem> items;
   private LocalDateTime createdAt;
   private OrderStatus status;
 
   public Order(Customer owner, List<OrderItem> items, LocalDateTime createdAt, OrderStatus status) {
+    this.id = UUID.randomUUID();
     this.owner = owner;
     this.createdAt = createdAt;
     this.status = status;
@@ -43,12 +45,7 @@ public class Order implements Serializable {
     return this;
   }
 
-  public Order setId(Integer id) {
-    this.id = id;
-    return this;
-  }
-
-  public Integer getId() {
+  public UUID getId() {
     return id;
   }
 
