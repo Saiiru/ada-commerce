@@ -45,6 +45,7 @@ public class Main {
     bus.subscribe(OrderEvents.Delivered.class,      e -> notifier.onDelivered(e.orderId()));
 
     runMenu();
+    seedData();
   }
 
   private static void runMenu() {
@@ -191,5 +192,22 @@ public class Main {
     int idx = Integer.parseInt(sc.nextLine().trim());
     if (idx < 1 || idx > matches.size()) throw new IllegalArgumentException("Indice invalido");
     return matches.get(idx-1).id();
+  }
+
+  private static void seedData() {
+    System.out.println("\n[INFO] Populando o sistema com dados de teste...");
+    try {
+      // Clientes
+      ServiceRegistry.customer().createCustomer("Ada Lovelace", "11122233344", "ada@lovelace.com");
+      ServiceRegistry.customer().createCustomer("Grace Hopper", "22233344455", "grace@hopper.com");
+
+      // Produtos
+      ServiceRegistry.product().createProduct("Teclado Mecanico", new BigDecimal("350.99"));
+      ServiceRegistry.product().createProduct("Mouse Gamer RGB", new BigDecimal("220.50"));
+      ServiceRegistry.product().createProduct("Monitor Ultrawide 34\"", new BigDecimal("2800.00"));
+      System.out.println("[INFO] Dados de teste carregados.");
+    } catch (Exception e) {
+      System.err.println("[ERRO] Falha ao carregar dados de teste: " + e.getMessage());
+    }
   }
 }
