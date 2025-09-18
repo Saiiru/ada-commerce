@@ -1,3 +1,9 @@
+import org.gradle.api.tasks.JavaExec
+
+tasks.named<JavaExec>("run") {
+  standardInput = System.`in`
+}
+
 plugins {
   application
   java

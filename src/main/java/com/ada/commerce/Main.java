@@ -3,15 +3,19 @@ package com.ada.commerce;
 import com.ada.commerce.service.delivery.MarkAsDeliveredUseCase;
 import com.ada.commerce.service.event.EventPublisher;
 import com.ada.commerce.service.event.InMemoryEventPublisher;
+import com.ada.commerce.service.impl.memory.InMemoryCustomerGateway;
+import com.ada.commerce.service.impl.memory.InMemoryOrderGateway;
+import com.ada.commerce.service.impl.memory.InMemoryProductGateway;
 import com.ada.commerce.service.notification.ConsoleEmailNotifier;
+import com.ada.commerce.service.payment.ProcessPaymentUseCase;
 import com.ada.commerce.service.ports.*;
 import com.ada.commerce.service.registry.ServiceRegistry;
 import com.ada.commerce.service.time.ClockProvider;
 import com.ada.commerce.service.time.SystemClockProvider;
-import com.ada.commerce.service.payment.ProcessPaymentUseCase;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
@@ -30,12 +34,18 @@ public class Main {
 
     ServiceRegistry.init(bus, clock, notifier);
 
+    // Registra os gateways em memória para permitir o teste de fluxo completo.
+    ServiceRegistry.register(new InMemoryCustomerGateway());
+    ServiceRegistry.register(new InMemoryProductGateway());
+    ServiceRegistry.register(new InMemoryOrderGateway(ServiceRegistry.bus()));
+
     // Subscrições de notificação para desacoplar os casos de uso do notificador.
     bus.subscribe(OrderEvents.AwaitingPayment.class, e -> notifier.onAwaitingPayment(e.orderId()));
     bus.subscribe(OrderEvents.Paid.class,           e -> notifier.onPaid(e.orderId()));
     bus.subscribe(OrderEvents.Delivered.class,      e -> notifier.onDelivered(e.orderId()));
 
     runMenu();
+    seedData();
   }
 
   private static void runMenu() {
@@ -94,7 +104,7 @@ public class Main {
               else all.forEach(p -> System.out.println(p.id()+" | "+p.name()+" | base="+p.basePrice()));
             }
             case "5" -> {
-              System.out.print("ID do cliente: "); UUID cid = UUID.fromString(sc.nextLine().trim());
+              UUID cid = resolveCustomerId(sc);
               currentOrder = ServiceRegistry.order().createOrder(cid);
               System.out.println("Pedido criado: " + currentOrder);
             }
@@ -153,6 +163,51 @@ public class Main {
           System.out.println("Erro: " + ex.getMessage());
         }
       }
+    }
+  }
+
+  private static UUID resolveCustomerId(Scanner sc) {
+    System.out.print("Cliente (UUID | documento | parte do nome): ");
+    String input = sc.nextLine().trim();
+
+    // tenta UUID
+    try { return UUID.fromString(input); } catch (Exception ignore) {}
+
+    // tenta documento
+    var byDoc = ServiceRegistry.customer().findByDocument(input);
+    if (byDoc.isPresent()) return byDoc.get().id();
+
+    // tenta nome (lista se múltiplos)
+    var matches = ServiceRegistry.customer().findByName(input);
+    if (matches.isEmpty()) throw new NoSuchElementException("Cliente nao encontrado");
+
+    if (matches.size() == 1) return matches.get(0).id();
+
+    System.out.println("Varios clientes encontrados:");
+    for (int i=0;i<matches.size();i++) {
+      var c = matches.get(i);
+      System.out.printf(" %d) %s | %s | %s%n", i+1, c.name(), c.document(), c.id());
+    }
+    System.out.print("Escolha [1-" + matches.size() + "]: ");
+    int idx = Integer.parseInt(sc.nextLine().trim());
+    if (idx < 1 || idx > matches.size()) throw new IllegalArgumentException("Indice invalido");
+    return matches.get(idx-1).id();
+  }
+
+  private static void seedData() {
+    System.out.println("\n[INFO] Populando o sistema com dados de teste...");
+    try {
+      // Clientes
+      ServiceRegistry.customer().createCustomer("Ada Lovelace", "11122233344", "ada@lovelace.com");
+      ServiceRegistry.customer().createCustomer("Grace Hopper", "22233344455", "grace@hopper.com");
+
+      // Produtos
+      ServiceRegistry.product().createProduct("Teclado Mecanico", new BigDecimal("350.99"));
+      ServiceRegistry.product().createProduct("Mouse Gamer RGB", new BigDecimal("220.50"));
+      ServiceRegistry.product().createProduct("Monitor Ultrawide 34\"", new BigDecimal("2800.00"));
+      System.out.println("[INFO] Dados de teste carregados.");
+    } catch (Exception e) {
+      System.err.println("[ERRO] Falha ao carregar dados de teste: " + e.getMessage());
     }
   }
 }
