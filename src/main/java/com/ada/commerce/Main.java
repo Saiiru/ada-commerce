@@ -16,6 +16,12 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
 
+/**
+ * Ponto de entrada principal para a aplicação Ada Commerce CLI.
+ * <p>
+ * Esta classe inicializa os serviços de infraestrutura (eventos, clock, notificação),
+ * configura o registro de serviços e executa o menu interativo da CLI.
+ */
 public class Main {
   public static void main(String[] args) {
     EventPublisher bus = new InMemoryEventPublisher();
@@ -24,7 +30,7 @@ public class Main {
 
     ServiceRegistry.init(bus, clock, notifier);
 
-    // Subscrições de notificação
+    // Subscrições de notificação para desacoplar os casos de uso do notificador.
     bus.subscribe(OrderEvents.AwaitingPayment.class, e -> notifier.onAwaitingPayment(e.orderId()));
     bus.subscribe(OrderEvents.Paid.class,           e -> notifier.onPaid(e.orderId()));
     bus.subscribe(OrderEvents.Delivered.class,      e -> notifier.onDelivered(e.orderId()));
@@ -150,4 +156,3 @@ public class Main {
     }
   }
 }
-

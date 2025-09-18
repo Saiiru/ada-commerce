@@ -9,6 +9,13 @@ import com.ada.commerce.service.time.ClockProvider;
 
 import java.util.Objects;
 
+/**
+ * Central de registro para injeção de dependência manual (Service Locator Pattern).
+ * <p>
+ * Fornece acesso global a implementações de gateways e serviços, permitindo que os
+ * módulos sejam fracamente acoplados. Por padrão, utiliza implementações "Null Object"
+ * para evitar `NullPointerException` quando os módulos reais não estão registrados.
+ */
 public final class ServiceRegistry {
   private static EventPublisher bus;
   private static ClockProvider clock;
@@ -20,6 +27,14 @@ public final class ServiceRegistry {
 
   private ServiceRegistry() {}
 
+  /**
+   * Inicializa o registro com as dependências de infraestrutura essenciais.
+   * Este método configura a "composition root" da aplicação.
+   *
+   * @param eventBus O publisher de eventos da aplicação.
+   * @param systemClock O provedor de tempo.
+   * @param notification O serviço de notificação.
+   */
   public static void init(EventPublisher eventBus, ClockProvider systemClock, NotificationService notification) {
     bus = Objects.requireNonNull(eventBus);
     clock = Objects.requireNonNull(systemClock);
@@ -38,4 +53,3 @@ public final class ServiceRegistry {
   public static ClockProvider  clock() { return clock; }
   public static NotificationService notifier() { return notifier; }
 }
-

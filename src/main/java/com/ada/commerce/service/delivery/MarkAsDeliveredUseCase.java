@@ -7,7 +7,10 @@ import com.ada.commerce.service.ports.OrderGateway;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Marca como entregue: valida no gateway, muda para DELIVERED e publica evento. */
+/**
+ * Caso de uso para marcar um pedido como entregue.
+ * Valida o estado do pedido, marca-o como entregue e publica um evento de notificação.
+ */
 public final class MarkAsDeliveredUseCase {
   private final OrderGateway orders;
   private final EventPublisher events;
@@ -17,9 +20,12 @@ public final class MarkAsDeliveredUseCase {
     this.events = Objects.requireNonNull(events);
   }
 
+  /**
+   * Executa o processo de entrega para um dado ID de pedido.
+   * @param orderId O ID do pedido a ser marcado como entregue.
+   */
   public void execute(UUID orderId) {
     orders.deliver(orderId);
     events.publish(new OrderEvents.Delivered(orderId));
   }
 }
-
