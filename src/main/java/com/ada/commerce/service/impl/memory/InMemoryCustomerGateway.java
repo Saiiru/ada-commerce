@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class InMemoryCustomerGateway implements CustomerGateway {
   private final Map<UUID, CustomerView> byId = new ConcurrentHashMap<>();
   private final Map<String, UUID> byDocument = new ConcurrentHashMap<>();
+  private final Map<String, Set<UUID>> byName = new ConcurrentHashMap<>();
 
   @Override
   public UUID createCustomer(String name, String document, String emailOrNull) {
@@ -23,6 +24,7 @@ public final class InMemoryCustomerGateway implements CustomerGateway {
     var view = new CustomerView(id, name, doc, emailOrNull, Instant.now(), true);
     byId.put(id, view);
     byDocument.put(doc, id);
+    byName.computeIfAbsent(name.toLowerCase(), k -> new LinkedHashSet<>()).add(id);
     return id;
   }
 
@@ -30,8 +32,11 @@ public final class InMemoryCustomerGateway implements CustomerGateway {
   public void updateCustomer(UUID id, String name, String emailOrNull) {
     var cur = byId.get(id);
     if (cur == null) throw new NoSuchElementException("Cliente nao encontrado");
+    // atualiza índice de nome
+    byName.getOrDefault(cur.name().toLowerCase(), Set.of()).remove(id);
     var updated = new CustomerView(cur.id(), name, cur.document(), emailOrNull, cur.createdAt(), cur.active());
     byId.put(id, updated);
+    byName.computeIfAbsent(name.toLowerCase(), k -> new LinkedHashSet<>()).add(id);
   }
 
   @Override
@@ -42,5 +47,23 @@ public final class InMemoryCustomerGateway implements CustomerGateway {
   @Override
   public Optional<CustomerView> getCustomer(UUID id) {
     return Optional.ofNullable(byId.get(id));
+  }
+
+  @Override
+  public Optional<CustomerView> findByDocument(String numericDocument) {
+    var doc = numericDocument.replaceAll("\\D+","");
+    var id = byDocument.get(doc);
+    return id == null ? Optional.empty() : Optional.ofNullable(byId.get(id));
+  }
+
+  @Override
+  public List<CustomerView> findByName(String name) {
+    var key = name.toLowerCase();
+    // contém (case-insensitive)
+    var out = new ArrayList<CustomerView>();
+    byId.values().forEach(v -> {
+      if (v.name()!=null && v.name().toLowerCase().contains(key)) out.add(v);
+    });
+    return out;
   }
 }
