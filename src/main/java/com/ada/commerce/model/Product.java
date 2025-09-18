@@ -1,4 +1,4 @@
-package TEST.java.com.ada.commerce.domain;
+package com.ada.commerce.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;

@@ -1,6 +1,11 @@
-package TEST.java.com.ada.commerce.domain;
+package com.ada.commerce.repository;
 
-import java.util.*;
+import com.ada.commerce.model.Product;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InMemoryProductRepository implements ProductRepository {
   private final Map<Integer, Product> storage = new HashMap<>();

@@ -1,5 +1,6 @@
-package TEST.java.com.ada.commerce.domain;
+package com.ada.commerce.repository;
 
+import com.ada.commerce.model.Product;
 import java.util.List;
 
 public interface ProductRepository {

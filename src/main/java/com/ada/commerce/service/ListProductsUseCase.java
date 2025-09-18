@@ -1,7 +1,7 @@
-package TEST.java.com.ada.commerce.domain;
+package com.ada.commerce.service;
 
-import TEST.java.com.ada.commerce.domain.Product;
-import TEST.java.com.ada.commerce.domain.ProductRepository;
+import com.ada.commerce.model.Product;
+import com.ada.commerce.repository.ProductRepository;
 import java.util.List;
 
 public class ListProductsUseCase {
@@ -15,4 +15,3 @@ public class ListProductsUseCase {
     return repository.findAll();
   }
 }
-
