@@ -8,6 +8,9 @@ import com.ada.commerce.service.ports.*;
 import com.ada.commerce.service.registry.ServiceRegistry;
 import com.ada.commerce.service.time.ClockProvider;
 import com.ada.commerce.service.time.SystemClockProvider;
+import com.ada.commerce.service.impl.memory.InMemoryCustomerGateway;
+import com.ada.commerce.service.impl.memory.InMemoryOrderGateway;
+import com.ada.commerce.service.impl.memory.InMemoryProductGateway;
 import com.ada.commerce.service.payment.ProcessPaymentUseCase;
 
 import java.math.BigDecimal;
@@ -29,6 +32,11 @@ public class Main {
     NotificationService notifier = new ConsoleEmailNotifier();
 
     ServiceRegistry.init(bus, clock, notifier);
+
+    // Registra os gateways em memória para permitir o teste de fluxo completo.
+    ServiceRegistry.register(new InMemoryCustomerGateway());
+    ServiceRegistry.register(new InMemoryProductGateway());
+    ServiceRegistry.register(new InMemoryOrderGateway(ServiceRegistry.bus()));
 
     // Subscrições de notificação para desacoplar os casos de uso do notificador.
     bus.subscribe(OrderEvents.AwaitingPayment.class, e -> notifier.onAwaitingPayment(e.orderId()));
