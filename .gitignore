@@ -5,3 +5,7 @@ out/
 build/
 .gradle/
 *.log
+
+# IDE files
+.idea/
+*.iml
