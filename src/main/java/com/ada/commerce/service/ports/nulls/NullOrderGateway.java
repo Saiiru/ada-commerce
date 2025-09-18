@@ -17,5 +17,6 @@ public final class NullOrderGateway implements OrderGateway {
   @Override public void deliver(UUID o){ throw ex(); }
   @Override public Optional<OrderView> getOrder(UUID o){ throw ex(); }
   @Override public List<OrderView> listOrdersByCustomer(UUID c){ throw ex(); }
+  @Override public List<OrderView> listAllOrders(){ throw ex(); }
 }
 

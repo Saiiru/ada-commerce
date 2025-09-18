@@ -8,13 +8,15 @@ public class Product {
   private String name;
   private BigDecimal basePrice;
   private int SKU;
+  private int stock;
   private final Instant createdAt;
   private boolean active;
 
-  public Product(String name, BigDecimal basePrice, int SKU){
+  public Product(String name, BigDecimal basePrice, int SKU, int stock){
     this.name = name;
     this.basePrice = basePrice;
     this.SKU = SKU;
+    this.stock = stock;
     this.createdAt = Instant.now();
     this.active = true;
   }
@@ -46,5 +48,13 @@ public class Product {
 
   public void setBasePrice(BigDecimal basePrice) {
     this.basePrice = basePrice;
+  }
+
+  public int getStock() {
+    return stock;
+  }
+
+  public void setStock(int stock) {
+    this.stock = stock;
   }
 }

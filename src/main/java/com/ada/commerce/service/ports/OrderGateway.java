@@ -15,5 +15,6 @@ public interface OrderGateway {
   void deliver(UUID orderId);
   Optional<OrderView> getOrder(UUID orderId);
   List<OrderView> listOrdersByCustomer(UUID customerId);
+  List<OrderView> listAllOrders();
 }
 

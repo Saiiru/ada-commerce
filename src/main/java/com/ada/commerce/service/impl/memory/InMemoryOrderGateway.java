@@ -59,7 +59,7 @@ public final class InMemoryOrderGateway implements OrderGateway {
     ensureOpen(o);
     if (o.items.isEmpty()) throw new IllegalStateException("Pedido sem itens");
     if (o.total().signum() <= 0) throw new IllegalStateException("Total deve ser > 0");
-    o.orderStatus = OPEN; // mantem order aberto
+    o.orderStatus = AWAITING; // Define o status do pedido como aguardando pagamento
     o.paymentStatus = AWAITING;
     events.publish(new OrderEvents.AwaitingPayment(orderId));
   }
@@ -89,6 +89,15 @@ public final class InMemoryOrderGateway implements OrderGateway {
     var out = new ArrayList<OrderView>();
     for (var st : byId.values()) {
       if (Objects.equals(st.customerId, customerId)) out.add(st.toView());
+    }
+    return out;
+  }
+
+  @Override
+  public List<OrderView> listAllOrders() {
+    var out = new ArrayList<OrderView>();
+    for (var st : byId.values()) {
+      out.add(st.toView());
     }
     return out;
   }

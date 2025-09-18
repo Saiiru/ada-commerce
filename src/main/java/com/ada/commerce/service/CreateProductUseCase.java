@@ -11,12 +11,12 @@ public class CreateProductUseCase {
     this.repository = repository;
   }
 
-  public Product execute(String name, BigDecimal basePrice, int sku) {
+  public Product execute(String name, BigDecimal basePrice, int sku, int initialStock) {
     if (basePrice.compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalArgumentException("Preço deve ser maior do que zero!");
     }
 
-    Product product = new Product(name, basePrice, sku);
+    Product product = new Product(name, basePrice, sku, initialStock);
     repository.save(product);
     return product;
   }
