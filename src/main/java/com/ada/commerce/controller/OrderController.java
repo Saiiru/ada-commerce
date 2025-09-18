@@ -79,15 +79,6 @@ public class OrderController {
     }
 
     /**
-     * Lista todos os pedidos de um cliente específico.
-     * @param customerId O ID do cliente.
-     * @return Uma lista de {@link OrderView} contendo os pedidos do cliente.
-     */
-    public List<OrderView> listOrdersByCustomer(UUID customerId) {
-        return orderGateway.listOrdersByCustomer(customerId);
-    }
-
-    /**
      * Obtém a visualização de um pedido específico.
      * @param orderId O ID do pedido.
      * @return Um {@link Optional} contendo o {@link OrderView} se encontrado, ou vazio caso contrário.
@@ -183,7 +174,7 @@ public class OrderController {
      * @param customerId O ID do cliente.
      * @return Uma lista de {@link OrderView} contendo os pedidos do cliente.
      */
-    @Override
     public List<OrderView> listOrdersByCustomer(UUID customerId) {
         return orderGateway.listOrdersByCustomer(customerId);
     }
+}

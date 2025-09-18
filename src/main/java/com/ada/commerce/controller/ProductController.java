@@ -32,11 +32,12 @@ public class ProductController {
      * @param price O preço base do produto.
      * @return Um objeto {@link Response} indicando o sucesso ou falha da operação e uma mensagem.
      */
-    public Response executeCreateProduct(String name, BigDecimal price) {
+    public Response executeCreateProduct(String name, BigDecimal price, int initialStock) {
         if (name == null || name.isBlank()) return new Response(false, "Nome obrigatório.");
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) return new Response(false, "Preço inválido.");
+        if (initialStock < 0) return new Response(false, "Estoque inicial não pode ser negativo.");
         try {
-            UUID id = productGateway.createProduct(name, price);
+            UUID id = productGateway.createProduct(name, price, initialStock);
             return new Response(true, "Produto criado: " + id);
         } catch (Exception e) {
             return new Response(false, "Erro: " + e.getMessage());
@@ -58,9 +59,9 @@ public class ProductController {
      * @param price O novo preço base do produto (pode ser null para não alterar).
      * @return Um objeto {@link Response} indicando o sucesso ou falha da operação e uma mensagem.
      */
-    public Response executeUpdateProduct(UUID id, String name, BigDecimal price) {
+    public Response executeUpdateProduct(UUID id, String name, BigDecimal price, int stock) {
         try {
-            productGateway.updateProduct(id, name, price);
+            productGateway.updateProduct(id, name, price, stock);
             return new Response(true, "Produto atualizado: " + id);
         } catch (Exception e) {
             return new Response(false, "Erro ao atualizar produto: " + e.getMessage());
@@ -74,5 +75,18 @@ public class ProductController {
      */
     public Optional<ProductView> getProduct(UUID id) {
         return productGateway.getProduct(id);
+    }
+
+    public List<ProductView> findByName(String name) {
+        return productGateway.findByName(name);
+    }
+
+    public Response executeUpdateStock(UUID id, int quantityChange) {
+        try {
+            productGateway.updateStock(id, quantityChange);
+            return new Response(true, "Estoque atualizado para o produto: " + id);
+        } catch (Exception e) {
+            return new Response(false, "Erro ao atualizar estoque: " + e.getMessage());
+        }
     }
 }

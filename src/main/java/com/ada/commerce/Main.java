@@ -65,9 +65,9 @@ public class Main {
             ServiceRegistry.customer().createCustomer("Grace Hopper", "22233344455", "grace@hopper.com");
 
             // Produtos
-            ServiceRegistry.product().createProduct("Teclado Mecanico", new BigDecimal("350.99"));
-            ServiceRegistry.product().createProduct("Mouse Gamer RGB", new BigDecimal("220.50"));
-            ServiceRegistry.product().createProduct("Monitor Ultrawide 34\"", new BigDecimal("2800.00"));
+            ServiceRegistry.product().createProduct("Teclado Mecanico", new BigDecimal("350.99"), 10);
+            ServiceRegistry.product().createProduct("Mouse Gamer RGB", new BigDecimal("220.50"), 15);
+            ServiceRegistry.product().createProduct("Monitor Ultrawide 34\"", new BigDecimal("2800.00"), 5);
             System.out.println("[INFO] Dados de teste carregados.");
         } catch (Exception e) {
             System.err.println("[ERRO] Falha ao carregar dados de teste: " + e.getMessage());
