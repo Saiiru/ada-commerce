@@ -4,6 +4,8 @@ tasks.named<JavaExec>("run") {
   standardInput = System.`in`
 }
 
+tasks.compileJava { options.encoding = "UTF-8" }
+
 plugins {
   application
   java
