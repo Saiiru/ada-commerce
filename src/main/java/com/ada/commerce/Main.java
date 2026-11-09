@@ -61,8 +61,8 @@ public class Main {
         System.out.println("\n[INFO] Populando o sistema com dados de teste...");
         try {
             // Clientes
-            ServiceRegistry.customer().createCustomer("Ada Lovelace", "11122233344", "ada@lovelace.com");
-            ServiceRegistry.customer().createCustomer("Grace Hopper", "22233344455", "grace@hopper.com");
+            ServiceRegistry.customer().createCustomer("Cliente Exemplo", "52998224725", "cliente@example.invalid");
+            ServiceRegistry.customer().createCustomer("Empresa Exemplo", "11222333000181", "empresa@example.invalid");
 
             // Produtos
             ServiceRegistry.product().createProduct("Teclado Mecanico", new BigDecimal("350.99"), 10);

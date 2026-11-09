@@ -1,5 +1,11 @@
 # Documentação do Ada Commerce
 
+> Estes documentos preservam o desenho e os requisitos educacionais da equipe.
+> Incluem propostas e exemplos históricos que podem divergir da CLI executável.
+> Consulte o [README principal](../README.md) e os testes JUnit para execução,
+> estados, validações e limites atuais. Eventos são síncronos em memória;
+> pagamento, entrega e email são simulações locais.
+
 Este diretório contém toda a documentação técnica e de negócio do projeto Ada Commerce. A documentação está organizada de forma profissional seguindo padrões da indústria para projetos Java com Clean Architecture.
 
 ## 📁 Estrutura da Documentação
@@ -162,5 +168,4 @@ Para dúvidas sobre a documentação:
 
 ---
 
-**Última atualização**: Automaticamente mantida via CI/CD
-**Versão da documentação**: Sempre alinhada com a versão do código
+**Manutenção**: Revisão manual; os documentos de desenho não são sincronizados automaticamente com o código.

@@ -10,6 +10,7 @@ public interface OrderGateway {
   void addItem(UUID orderId, UUID productId, String productNameSnapshot, BigDecimal unitPriceSnapshot, int quantity);
   void changeItemQuantity(UUID orderId, UUID productId, int quantity);
   void removeItem(UUID orderId, UUID productId);
+  // A implementação publica o evento correspondente uma única vez por transição bem-sucedida.
   void finalizeOrder(UUID orderId);
   void pay(UUID orderId);
   void deliver(UUID orderId);

@@ -5,7 +5,6 @@ import com.ada.commerce.service.ports.*;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class InMemoryOrderGateway implements OrderGateway {
   private static final String OPEN = "OPEN";
@@ -13,7 +12,7 @@ public final class InMemoryOrderGateway implements OrderGateway {
   private static final String PAID = "PAID";
   private static final String DELIVERED = "DELIVERED";
 
-  private final Map<UUID, OrderState> byId = new ConcurrentHashMap<>();
+  private final Map<UUID, OrderState> byId = new LinkedHashMap<>();
   private final EventPublisher events;
 
   public InMemoryOrderGateway(EventPublisher events) {
@@ -22,6 +21,7 @@ public final class InMemoryOrderGateway implements OrderGateway {
 
   @Override
   public UUID createOrder(UUID customerId) {
+    Objects.requireNonNull(customerId, "Cliente obrigatório");
     var id = UUID.randomUUID();
     byId.put(id, new OrderState(id, customerId));
     return id;
@@ -33,7 +33,18 @@ public final class InMemoryOrderGateway implements OrderGateway {
     ensureOpen(o);
     if (unitPriceSnapshot == null || unitPriceSnapshot.signum() <= 0) throw new IllegalArgumentException("Preco unitario deve ser > 0");
     if (quantity < 1) throw new IllegalArgumentException("Quantidade deve ser >= 1");
-    o.items.put(productId, new Item(productId, productNameSnapshot, unitPriceSnapshot, quantity));
+    Objects.requireNonNull(productId, "Produto obrigatório");
+    if (productNameSnapshot == null || productNameSnapshot.isBlank()) throw new IllegalArgumentException("Nome obrigatório");
+    unitPriceSnapshot = InMemoryProductGateway.currency(unitPriceSnapshot);
+    var previous = o.items.get(productId);
+    if (previous == null) {
+      o.items.put(productId, new Item(productId, productNameSnapshot, unitPriceSnapshot, quantity));
+    } else {
+      int combined;
+      try { combined = Math.addExact(previous.quantity, quantity); }
+      catch (ArithmeticException e) { throw new IllegalArgumentException("Quantidade excede o limite", e); }
+      o.items.put(productId, new Item(productId, previous.name, previous.unitPrice, combined));
+    }
   }
 
   @Override
@@ -67,15 +78,18 @@ public final class InMemoryOrderGateway implements OrderGateway {
   @Override
   public void pay(UUID orderId) {
     var o = getState(orderId);
-    if (!AWAITING.equals(o.paymentStatus)) throw new IllegalStateException("Pedido nao esta aguardando pagamento");
+    if (!AWAITING.equals(o.orderStatus) || !AWAITING.equals(o.paymentStatus)) throw new IllegalStateException("Pedido nao esta aguardando pagamento");
     o.paymentStatus = PAID;
+    o.orderStatus = PAID;
+    events.publish(new OrderEvents.Paid(orderId));
   }
 
   @Override
   public void deliver(UUID orderId) {
     var o = getState(orderId);
-    if (!PAID.equals(o.paymentStatus)) throw new IllegalStateException("Pedido nao esta pago");
-    o.orderStatus = DELIVERED; // seguindo enum unico do MVP
+    if (!PAID.equals(o.orderStatus) || !PAID.equals(o.paymentStatus)) throw new IllegalStateException("Pedido nao esta pago");
+    o.orderStatus = DELIVERED;
+    events.publish(new OrderEvents.Delivered(orderId));
   }
 
   @Override
@@ -137,7 +151,7 @@ public final class InMemoryOrderGateway implements OrderGateway {
       for (var it : items.values()) {
         list.add(new OrderItemView(it.productId, it.name, it.unitPrice, it.quantity));
       }
-      return new OrderView(id, customerId, orderStatus, paymentStatus, list, total());
+      return new OrderView(id, customerId, orderStatus, paymentStatus, List.copyOf(list), total());
     }
   }
 

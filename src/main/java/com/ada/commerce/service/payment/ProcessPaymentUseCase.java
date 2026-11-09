@@ -1,7 +1,6 @@
 package com.ada.commerce.service.payment;
 
 import com.ada.commerce.service.event.EventPublisher;
-import com.ada.commerce.service.ports.OrderEvents;
 import com.ada.commerce.service.ports.OrderGateway;
 
 import java.util.Objects;
@@ -9,15 +8,14 @@ import java.util.UUID;
 
 /**
  * Caso de uso para processar o pagamento de um pedido.
- * Valida o estado do pedido através do gateway, efetua o pagamento e publica um evento de sucesso.
+ * Valida o estado do pedido através do gateway, efetua o pagamento e delega a publicação do evento ao gateway.
  */
 public final class ProcessPaymentUseCase {
   private final OrderGateway orders;
-  private final EventPublisher events;
 
   public ProcessPaymentUseCase(OrderGateway orders, EventPublisher events) {
     this.orders = Objects.requireNonNull(orders);
-    this.events = Objects.requireNonNull(events);
+    Objects.requireNonNull(events);
   }
 
   /**
@@ -26,6 +24,5 @@ public final class ProcessPaymentUseCase {
    */
   public void execute(UUID orderId) {
     orders.pay(orderId);
-    events.publish(new OrderEvents.Paid(orderId));
   }
 }

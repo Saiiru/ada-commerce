@@ -1,354 +1,110 @@
-# Ada Commerce — Núcleo de E-commerce Educacional
+# Ada Commerce — CLI educacional em Java
 
-## Visão Geral do Projeto
+Projeto de estudo para cadastrar clientes e produtos e acompanhar pedidos pelo terminal.
+O fluxo executado por `Main` usa controllers, portas (`service/ports`) e gateways em memória
+(`service/impl/memory`). As entidades e serviços anteriores continuam no repositório como
+material do desenvolvimento em equipe; não são o caminho usado pela CLI atual.
 
-**Ada Commerce** é um projeto educacional que implementa o núcleo de um sistema de e-commerce utilizando **Clean Architecture**. O foco está na criação de uma base sólida, testável e extensível para operações de cadastro de clientes/produtos e gestão completa do fluxo de pedidos.
+## Executar
 
-**Problema**: Implementar o núcleo de um e‑commerce educacional para cadastro de clientes/produtos e fluxo de pedidos (itens, finalização, pagamento, entrega), sem REST nesta etapa.
-
-**Meta**: Base limpa, testável e extensível com separação clara de responsabilidades seguindo os princípios da Clean Architecture.
-
-## Funcionalidades Principais
-
-### 🧑‍💼 Gestão de Clientes
-- ✅ Cadastro de clientes com validação de documento (CPF/CNPJ)
-- ✅ Listagem e consulta de clientes
-- ✅ Atualização de dados (nome e email)
-- ✅ Validação de documentos únicos no sistema
-
-### 📦 Gestão de Produtos  
-- ✅ Cadastro de produtos com informações básicas
-- ✅ Listagem e consulta de produtos
-- ✅ Atualização de informações e preços
-- ✅ Controle de preços com BigDecimal (2 casas decimais)
-
-### 🛒 Gestão de Pedidos
-- ✅ Criação de pedidos para clientes cadastrados
-- ✅ Adição/remoção/alteração de itens (apenas em status OPEN)
-- ✅ Cálculo automático de totais com snapshot de preços
-- ✅ Fluxo completo: OPEN → AWAITING_PAYMENT → PAID → FINISHED
-- ✅ Notificações em cada transição de status
-
-### 🔔 Sistema de Notificações
-- ✅ Notificações via console (simulação de email)
-- ✅ Eventos assíncronos para desacoplamento
-- ✅ Notificações automáticas em mudanças de status
-
-## Regras de Negócio
-
-### Clientes
-- **Documento obrigatório e único**: Cada cliente deve ter um documento válido (CPF ou CNPJ) único no sistema
-- **Validação rigorosa**: CPF e CNPJ são validados algoritmicamente
-- **Imutabilidade do documento**: Uma vez cadastrado, o documento não pode ser alterado
-- **Soft delete**: Clientes são marcados como inativos, nunca removidos
-
-### Produtos
-- **Preço obrigatório**: Todo produto deve ter um preço base maior que zero
-- **Informações básicas**: ID, nome e preço são suficientes para o MVP
-- **Atualizações permitidas**: Nome e preço podem ser atualizados a qualquer momento
-
-### Pedidos
-- **Estado inicial**: Todo pedido inicia no status OPEN
-- **Modificações restritas**: Itens só podem ser alterados em pedidos OPEN
-- **Snapshot de preços**: Preço do item é capturado no momento da adição
-- **Fluxo linear**: OPEN → AWAITING_PAYMENT → PAID → FINISHED
-- **Cliente obrigatório**: Todo pedido deve estar associado a um cliente válido
-
-### Pagamentos e Entregas
-- **Pagamento necessário**: Pedidos devem ser pagos antes da entrega
-- **Notificação automática**: Cada transição gera evento e notificação
-- **Status final**: FINISHED indica pedido completamente processado
-
-## Tecnologias
-
-- **Java 17** - Linguagem principal com recursos modernos
-- **Gradle 8.8** - Build tool e gerenciamento de dependências  
-- **JUnit 5** - Framework de testes unitários
-- **Clean Architecture** - Padrão arquitetural para separação de responsabilidades
-- **GitHub Actions** - CI/CD e automações
-- **Console CLI** - Interface de demonstração das funcionalidades
-
-## Estrutura de Pastas
-
-```
-ada-commerce/
-├── src/
-│   ├── main/java/com/ada/commerce/
-│   │   ├── cli/                     # Interface CLI de demonstração
-│   │   ├── controller/              # Controllers da camada de interface
-│   │   ├── model/                   # Entidades, VOs, Enums, Portas, Eventos
-│   │   │   ├── entity/              # Entidades de domínio (Customer, Product, Order)
-│   │   │   ├── vo/                  # Value Objects (Money, Document, Email)
-│   │   │   ├── enums/               # Enumerações (OrderStatus, PaymentStatus)
-│   │   │   ├── ports/               # Interfaces de repositórios
-│   │   │   └── events/              # Eventos de domínio
-│   │   ├── service/                 # Casos de uso e serviços da aplicação
-│   │   │   ├── impl/                # Implementações de casos de uso
-│   │   │   ├── ports/               # Portas da camada de aplicação
-│   │   │   └── registry/            # Registry de serviços
-│   │   ├── repository/              # Implementações de repositórios
-│   │   └── utils/                   # Utilitários e helpers
-│   └── test/java/                   # Testes unitários espelhando a estrutura
-├── docs/                            # Documentação completa do projeto
-│   ├── diagrams/                    # Diagramas de caso de uso, classe e sequência
-│   ├── specs/                       # Especificações e requisitos detalhados
-│   ├── exemplos/                    # Exemplos de uso e fluxos CLI
-│   └── README.md                    # Índice da documentação
-├── .github/                         # Templates e workflows GitHub
-│   ├── ISSUE_TEMPLATE/              # Templates para issues
-│   ├── workflows/                   # CI/CD pipelines
-│   └── PULL_REQUEST_TEMPLATE.md     # Template para pull requests
-├── scripts/                         # Scripts de automação
-├── gradle/                          # Wrapper e configurações Gradle
-├── build.gradle.kts                 # Configuração de build
-├── settings.gradle.kts              # Configurações do projeto
-└── README.md                        # Este arquivo
-```
-
-### Visão de Camadas (Clean Architecture)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    INTERFACE ADAPTERS                       │
-│                   (cli, controllers)                        │
-├─────────────────────────────────────────────────────────────┤
-│                   APPLICATION LAYER                         │
-│              (services, use cases, ports)                   │
-├─────────────────────────────────────────────────────────────┤
-│                    DOMAIN LAYER                             │
-│           (entities, value objects, events)                 │
-├─────────────────────────────────────────────────────────────┤
-│                  INFRASTRUCTURE LAYER                       │
-│              (repositories, external services)              │
-└─────────────────────────────────────────────────────────────┘
-```
-### Arquitetura e Diagramas
-
-![Arquitetura](docs/diagrams/architecture.svg)
-
-### Fluxo de Dados de Alto Nível
-
-![Fluxo](docs/diagrams/data-flow.svg)
-
-### Diagrama de Classes
-
-![Diagrama de Classes](docs/diagrams/ClassDiagram-Ada-Commerce.svg)
-
-### Casos de Uso
-
-![Casos de Uso](docs/diagrams/UseCase-Ada-Commerce.svg)
-
-### Diagrama de Sequência - Pedido
-
-![Sequencia - Pedido](docs/diagrams/SequenceDiagram-Pedido-Ada-Commerce.svg)
-
-### Diagrama de Sequência - Entrega e Pagamento
-
-![Sequencia - Entrega e Pagamento](docs/diagrams/SequenceDiagram-Entrega-Pagamento-Ada-Commerce.svg)
-
-## Como Executar
-
-### Pré-requisitos
-- **JDK 17** ou superior
-- **Git** instalado
-- **GitHub CLI (`gh`)** para automações (opcional)
-
-### Configuração Inicial
+Requisitos: **JDK 17** instalado, Git e acesso à internet na primeira execução
+para baixar Gradle 8.8 e as dependências de teste. O wrapper usa um toolchain Java 17;
+ter somente um JDK mais recente não garante a execução. Não é necessário instalar Gradle
+globalmente. No Windows, substitua `./gradlew` por `gradlew.bat`.
 
 ```bash
-# 1. Clonar o repositório
 git clone https://github.com/Saiiru/ada-commerce.git
 cd ada-commerce
-
-# 2. Verificar instalação do Java
 java -version
-
-# 3. Executar build e testes
-./gradlew build
-
-# 4. Executar a aplicação CLI
-./gradlew run
-```
-
-### Comandos Úteis
-
-```bash
-# Executar apenas os testes
-./gradlew test
-
-# Executar build limpo
 ./gradlew clean build
-
-# Verificar dependências
-./gradlew dependencies
-
-# Gerar relatório de testes
-./gradlew test jacocoTestReport
+./gradlew run --console=plain --quiet
 ```
 
-## Demonstração do CLI
-
-O sistema inclui uma interface de linha de comando completa para demonstrar todas as funcionalidades. Ao executar `./gradlew run`, você terá acesso a um menu interativo:
-
-### Menu Principal
-```
-Ada Commerce CLI
-
---- CONTEXTO ATUAL ---
-Cliente Selecionado: Nenhum
-Pedido Atual: Nenhum
-----------------------
-
-=== MENU PRINCIPAL ===
- 1) Clientes
- 2) Produtos  
- 3) Pedidos
- 0) Sair
-```
-
-### Fluxo de Demonstração Completo
-
-1. **Cadastro de Cliente**
-   - Navegar para menu Clientes → Cadastrar
-   - Informar nome, documento (CPF/CNPJ) e email
-   - Sistema valida documento e verifica unicidade
-
-2. **Cadastro de Produtos**
-   - Navegar para menu Produtos → Cadastrar
-   - Informar nome e preço base
-   - Sistema valida preço positivo
-
-3. **Criação e Gestão de Pedido**
-   - Selecionar cliente cadastrado
-   - Criar novo pedido (status OPEN)
-   - Adicionar produtos com quantidades
-   - Visualizar total calculado automaticamente
-
-4. **Processamento do Pedido**
-   - Finalizar pedido → Status AWAITING_PAYMENT
-   - Processar pagamento → Status PAID  
-   - Marcar como entregue → Status FINISHED
-   - Observar notificações em cada etapa
-
-### Exemplo de Sessão
+Se o Gradle não localizar o JDK 17, configure `JAVA_HOME` para sua instalação antes
+de executar o wrapper. Não há banco de dados, credenciais ou servidor para configurar.
 
 ```bash
-$ ./gradlew run
-
-[INFO] Populando o sistema com dados de teste...
-[INFO] Dados de teste carregados.
-
-# Menu permite navegar pelas funcionalidades
-# Sistema exibe contexto atual (cliente/pedido selecionado)
-# Validações são aplicadas em tempo real
-# Notificações aparecem automaticamente
+./gradlew test                         # testes JUnit 5
+./gradlew installDist                  # distribuição local
+./build/install/ada-commerce/bin/ada-commerce
 ```
 
-### Dados de Teste
+O relatório de testes fica em `build/reports/tests/test/index.html`.
+A aplicação inicia com dois clientes de demonstração (documentos de exemplo com
+dígitos verificadores válidos) e três produtos. Não use dados pessoais reais.
+Todos os dados e UUIDs são recriados a cada execução.
 
-O sistema é populado automaticamente com:
-- **Clientes**: Exemplos com CPF e CNPJ válidos
-- **Produtos**: Itens diversos com preços variados
-- **Estrutura pronta**: Para testar fluxos completos
+## Menus e fluxo
 
-Para mais exemplos detalhados, consulte [docs/exemplos/](docs/exemplos/).
+No menu principal: **1 Clientes**, **2 Produtos**, **3 Pedidos**, **0 Sair**.
+Nos submenus, **0** volta. Fim da entrada (por exemplo, Ctrl+D no Linux)
+encerra a sessão sem stack trace.
 
-## Colaboradores
+| Menu | Opções |
+|---|---|
+| Clientes | 1 cadastrar; 2 listar; 3 selecionar por UUID, documento ou parte do nome; 4 atualizar cliente atual |
+| Produtos | 1 cadastrar; 2 listar; 3 ajustar estoque com quantidade positiva/negativa; 4 atualizar nome e preço |
+| Pedidos | 1 criar para cliente selecionado; 2 adicionar item; 3 alterar quantidade; 4 remover item; 5 finalizar; 6 pagar; 7 entregar; 8 ver atual; 9 listar todos; 10 listar por cliente; 11 selecionar por UUID |
 
-Este projeto foi desenvolvido como parte do programa educacional da Ada Tech, com contribuições de:
+As listagens mostram o UUID completo para copiar e selecionar.
+Ao atualizar um cliente, nome/email vazios mantêm o valor e `-` remove o email.
+Ao atualizar um produto, nome/preço vazios mantêm o valor. Preços usam ponto decimal,
+como `19.90`, e devem ser positivos com até duas casas decimais.
 
-- **[Antonio Carlos]** - Módulo Customer e validações de documento
-- **[Thiago]** - Módulo Product e gestão de preços
-- **[Carlúcio]** - Módulo Order e fluxo de pedidos
-- **[Urias]** - Infraestrutura, Payment, Delivery, Notification e CLI
+Para demonstrar um pedido:
 
-Cada colaborador foi responsável por módulos específicos seguindo os princípios da Clean Architecture e práticas de desenvolvimento colaborativo.
+1. Abra **Clientes → 3** e selecione `52998224725` (Cliente Exemplo); volte.
+2. Abra **Pedidos → 1** para criar um pedido.
+3. Escolha **2**, procure `Teclado`, deixe o preço vazio para usar o preço base e informe quantidade `1`.
+4. Escolha **5**, **6**, **7** para finalizar, simular pagamento e registrar entrega.
+5. Escolha **8** para conferir o pedido entregue, total e snapshot do produto.
 
-## Referências
+Uma sessão reproduzível em shell Unix:
 
-### Arquitetura e Design
-- [Clean Architecture - Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Domain-Driven Design - Eric Evans](https://domainlanguage.com/ddd/)
-- [Hexagonal Architecture - Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/)
+```bash
+printf '1\n3\n52998224725\n0\n3\n1\n2\nTeclado\n\n1\n5\n6\n7\n8\n0\n0\n' | ./gradlew run --console=plain --quiet
+```
 
-### Tecnologias e Ferramentas
-- [Java 17 Documentation](https://docs.oracle.com/en/java/javase/17/)
-- [Gradle User Manual](https://docs.gradle.org/current/userguide/userguide.html)
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
+## Regras do fluxo ativo
 
-### Boas Práticas
-- [Conventional Commits](https://www.conventionalcommits.org/)
-- [GitHub Flow](https://guides.github.com/introduction/flow/)
-- [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
+- Clientes exigem nome e CPF/CNPJ válidos pelo algoritmo dos dígitos verificadores.
+  O documento é normalizado, único e imutável. Email é opcional e recebe validação sintática;
+  isso não verifica existência, titularidade ou situação cadastral.
+- Produtos exigem nome, preço positivo em centavos e estoque inteiro não negativo.
+- Um pedido é criado para um cliente existente. Itens só podem ser alterados em `OPEN`.
+- Adicionar um produto reserva estoque imediatamente. Adições repetidas somam quantidades
+  e preservam o nome/preço capturados na primeira adição. Alterar quantidade ajusta a reserva;
+  remover o item devolve a quantidade reservada ao estoque.
+- Estoque insuficiente e entradas inválidas são rejeitados antes de alterar pedido/estoque.
+  Atualizar o cadastro ou preço do produto não altera os snapshots dos pedidos existentes.
+- Finalizar exige ao menos um item e total positivo. O fluxo é
+  **OPEN → AWAITING_PAYMENT → PAID → DELIVERED**.
+  Pagamento ou entrega fora da sequência, inclusive repetições, são rejeitados.
+- Cada transição bem-sucedida publica um evento síncrono em memória e uma mensagem
+  `[EMAIL]` no console. Não há envio de email, cobrança financeira ou serviço de entrega real.
 
-### Documentação Adicional
-- [docs/README.md](docs/README.md) - Índice completo da documentação
-- [docs/specs/](docs/specs/) - Especificações técnicas detalhadas
-- [docs/exemplos/](docs/exemplos/) - Exemplos práticos de uso
+## Testes e limites
 
-## Desenvolvimento e Contribuição
+Os testes automatizados exercitam validações, transições inválidas, totais/snapshots,
+reserva/devolução de estoque, eventos, inicialização e sessões completas dos menus.
+Os arquivos em `src/test/java/com/ada/commerce/domain` são exemplos antigos,
+não testes JUnit nem evidência de cobertura.
 
-### Issues e Pull Requests
+Esta aplicação tem um único usuário por processo e armazenamento volátil.
+Não oferece API REST, persistência, transações entre gateways, concorrência,
+autenticação, cancelamento/expiração de reservas ou integrações externas.
+Reservas de pedidos abertos duram até a remoção do item ou o encerramento da sessão.
+A validação de documentos implementada cobre CPF e CNPJ numéricos; outros formatos
+não estão implementados. Não há plugin JaCoCo nem meta de cobertura comprovada.
 
-**Issues**: São cartões de trabalho organizados por templates:
-- `Task`: Tarefa técnica granular
-- `Story`: História funcional com critérios de aceite  
-- `Bug`: Defeito com passos de reprodução
+Os [diagramas e especificações](docs/README.md) registram o desenho educacional e
+podem incluir propostas ainda não implementadas. Este README e os testes descrevem
+o comportamento executável atual.
 
-**Fluxo de Desenvolvimento**:
-1. Criar issue definindo escopo e critérios de aceite
-2. Criar branch: `feat/<escopo>` ou `fix/<escopo>`
-3. Commits seguindo **Conventional Commits** (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`)
-4. Abrir PR pequeno e focado, preenchendo o template
-5. Solicitar pelo menos 1 review
-6. Merge via **Squash** (branch `main` protegida)
+## Colaboração
 
-### Padrões de Código
-- **Clean Architecture**: Separação clara de responsabilidades por camadas
-- **SOLID Principles**: Aplicados em todo o design de classes
-- **Value Objects**: Para conceitos de domínio como Money, Document, Email
-- **Domain Events**: Para comunicação assíncrona entre módulos
-- **Repository Pattern**: Para abstração de persistência
+Projeto desenvolvido no programa educacional Ada Tech, com contribuições de
+Antonio Carlos (clientes/documentos), Thiago (produtos), Carlúcio (pedidos)
+e Urias (infraestrutura, pagamento, entrega, notificações e CLI).
 
-### Testes
-- **Testes unitários**: Para todas as regras de negócio
-- **Testes de integração**: Para fluxos completos
-- **Coverage**: Objetivo de 80%+ nas camadas de domínio e aplicação
-
-## Roadmap
-
-### ✅ Fase 1: Núcleo sem API (Atual)
-- Domínio completo com entidades e regras de negócio
-- Casos de uso para todos os módulos
-- Repositórios em memória
-- CLI funcional para demonstração
-- Documentação completa
-
-### 🔄 Fase 2: API REST
-- Controllers REST mapeando casos de uso
-- Serialização JSON
-- Validação de entrada
-- Documentação OpenAPI/Swagger
-- Postman collections
-
-### 📋 Fase 3: Persistência e Estoque
-- Banco de dados relacional (PostgreSQL)
-- JPA/Hibernate para persistência
-- Controle de estoque
-- Transações ACID
-- Migrações de schema
-
-### 🚀 Fase 4: Integrações Externas
-- Gateway de pagamento real
-- Serviços de entrega
-- Notificações por email/SMS
-- Métricas e monitoramento
-- Deploy em cloud
-
-## Licença
-
-MIT License - veja [LICENSE](LICENSE) para detalhes.
-
----
-
-**Ada Commerce** - Desenvolvido com 💙 pela turma da Ada Tech
+Licença MIT: consulte [LICENSE](LICENSE).

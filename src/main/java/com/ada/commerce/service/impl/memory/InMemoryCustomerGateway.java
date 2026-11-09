@@ -1,69 +1,61 @@
 package com.ada.commerce.service.impl.memory;
 
+import com.ada.commerce.model.vo.Document;
+import com.ada.commerce.model.vo.ValidarEmail;
 import com.ada.commerce.service.ports.CustomerGateway;
 import com.ada.commerce.service.ports.CustomerView;
-
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class InMemoryCustomerGateway implements CustomerGateway {
-  private final Map<UUID, CustomerView> byId = new ConcurrentHashMap<>();
-  private final Map<String, UUID> byDocument = new ConcurrentHashMap<>();
-  private final Map<String, Set<UUID>> byName = new ConcurrentHashMap<>();
+  private final Map<UUID, CustomerView> byId = new LinkedHashMap<>();
+  private final Map<String, UUID> byDocument = new HashMap<>();
 
   @Override
   public UUID createCustomer(String name, String document, String emailOrNull) {
-    Objects.requireNonNull(name);
-    Objects.requireNonNull(document);
-    var doc = document.replaceAll("\\D+", "");
-    if (doc.isEmpty()) throw new IllegalArgumentException("Documento invalido");
+    String validName = validateName(name);
+    if (document == null) throw new IllegalArgumentException("Documento obrigatório");
+    String digits = document.replaceAll("\\D", "");
+    Document.Type type = digits.length() == 11 ? Document.Type.CPF : Document.Type.CNPJ;
+    String doc = new Document(document, type).value();
+    String email = validateEmail(emailOrNull);
     if (byDocument.containsKey(doc)) throw new IllegalStateException("Documento duplicado");
-
-    var id = UUID.randomUUID();
-    var view = new CustomerView(id, name, doc, emailOrNull, Instant.now(), true);
-    byId.put(id, view);
+    UUID id = UUID.randomUUID();
+    byId.put(id, new CustomerView(id, validName, doc, email, Instant.now(), true));
     byDocument.put(doc, id);
-    byName.computeIfAbsent(name.toLowerCase(), k -> new LinkedHashSet<>()).add(id);
     return id;
   }
 
   @Override
   public void updateCustomer(UUID id, String name, String emailOrNull) {
-    var cur = byId.get(id);
-    if (cur == null) throw new NoSuchElementException("Cliente nao encontrado");
-    // atualiza índice de nome
-    byName.getOrDefault(cur.name().toLowerCase(), Set.of()).remove(id);
-    var updated = new CustomerView(cur.id(), name, cur.document(), emailOrNull, cur.createdAt(), cur.active());
-    byId.put(id, updated);
-    byName.computeIfAbsent(name.toLowerCase(), k -> new LinkedHashSet<>()).add(id);
+    var current = byId.get(id);
+    if (current == null) throw new NoSuchElementException("Cliente não encontrado");
+    String validName = name == null ? current.name() : validateName(name);
+    String email = emailOrNull == null ? current.email() : validateEmail(emailOrNull);
+    byId.put(id, new CustomerView(id, validName, current.document(), email, current.createdAt(), current.active()));
   }
 
-  @Override
-  public List<CustomerView> listCustomers() {
-    return new ArrayList<>(byId.values());
+  private static String validateName(String name) {
+    if (name == null || name.isBlank()) throw new IllegalArgumentException("Nome obrigatório");
+    return name.trim();
   }
 
-  @Override
-  public Optional<CustomerView> getCustomer(UUID id) {
-    return Optional.ofNullable(byId.get(id));
+  private static String validateEmail(String email) {
+    return email == null || email.isBlank() ? null : new ValidarEmail(email.trim()).value();
   }
 
-  @Override
-  public Optional<CustomerView> findByDocument(String numericDocument) {
-    var doc = numericDocument.replaceAll("\\D+","");
-    var id = byDocument.get(doc);
-    return id == null ? Optional.empty() : Optional.ofNullable(byId.get(id));
+  @Override public List<CustomerView> listCustomers() { return new ArrayList<>(byId.values()); }
+  @Override public Optional<CustomerView> getCustomer(UUID id) { return Optional.ofNullable(byId.get(id)); }
+
+  @Override public Optional<CustomerView> findByDocument(String document) {
+    if (document == null) return Optional.empty();
+    UUID id = byDocument.get(document.replaceAll("\\D", ""));
+    return id == null ? Optional.empty() : getCustomer(id);
   }
 
-  @Override
-  public List<CustomerView> findByName(String name) {
-    var key = name.toLowerCase();
-    // contém (case-insensitive)
-    var out = new ArrayList<CustomerView>();
-    byId.values().forEach(v -> {
-      if (v.name()!=null && v.name().toLowerCase().contains(key)) out.add(v);
-    });
-    return out;
+  @Override public List<CustomerView> findByName(String name) {
+    if (name == null || name.isBlank()) return List.of();
+    String key = name.trim().toLowerCase(Locale.ROOT);
+    return byId.values().stream().filter(c -> c.name().toLowerCase(Locale.ROOT).contains(key)).toList();
   }
 }

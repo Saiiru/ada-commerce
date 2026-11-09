@@ -36,7 +36,7 @@ public class CustomerController {
         if (name == null || name.isBlank()) return new Response(false, "Nome obrigatório.");
         if (document == null || document.isBlank()) return new Response(false, "Documento obrigatório.");
         try {
-            UUID id = customerGateway.createCustomer(name, document, email.isBlank() ? null : email);
+            UUID id = customerGateway.createCustomer(name, document, email);
             return new Response(true, "Cliente criado: " + id);
         } catch (Exception e) {
             return new Response(false, "Erro ao criar cliente: " + e.getMessage());
@@ -60,7 +60,7 @@ public class CustomerController {
      */
     public Response executeUpdateCustomer(UUID id, String name, String email) {
         try {
-            customerGateway.updateCustomer(id, name, email.isBlank() ? null : email);
+            customerGateway.updateCustomer(id, name, email);
             return new Response(true, "Cliente atualizado: " + id);
         } catch (Exception e) {
             return new Response(false, "Erro ao atualizar cliente: " + e.getMessage());
