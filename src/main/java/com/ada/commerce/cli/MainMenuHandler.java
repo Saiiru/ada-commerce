@@ -5,8 +5,8 @@ import com.ada.commerce.service.ports.CustomerView;
 import com.ada.commerce.service.ports.ProductView;
 import com.ada.commerce.service.ports.OrderView;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
@@ -45,7 +45,6 @@ public class MainMenuHandler {
      */
     public void run() {
         System.out.println("Ada Commerce CLI");
-        loop:
         while (true) {
             displayCurrentContext();
             System.out.println("\n=== MENU PRINCIPAL ===");
@@ -55,7 +54,8 @@ public class MainMenuHandler {
             System.out.println(" 0) Sair");
             System.out.print("Escolha: ");
 
-            String opt = sc.nextLine().trim();
+            if (!sc.hasNextLine()) { System.out.println("Fim."); return; }
+            String opt = readLine().trim();
             try {
                 switch (opt) {
                     case "1" -> handleCustomerMenu();
@@ -64,12 +64,22 @@ public class MainMenuHandler {
                     case "0" -> { System.out.println("Fim."); return; }
                     default -> System.out.println("Opcao invalida.");
                 }
+            } catch (EndOfInput e) {
+                System.out.println("Fim.");
+                return;
             } catch (UnsupportedOperationException e) {
                 System.out.println("Funcao indisponivel: " + e.getMessage());
             } catch (Exception ex) {
                 System.out.println("Erro: " + ex.getMessage());
             }
         }
+    }
+
+    private static final class EndOfInput extends RuntimeException {}
+
+    private String readLine() {
+        if (!sc.hasNextLine()) throw new EndOfInput();
+        return sc.nextLine();
     }
 
     private void displayCurrentContext() {
@@ -79,12 +89,12 @@ public class MainMenuHandler {
             Optional<CustomerView> custOpt = customerController.getCustomer(currentCustomer);
             customerName = custOpt.map(CustomerView::name).orElse("Desconhecido");
         }
-        System.out.println("Cliente Selecionado: " + customerName + (currentCustomer != null ? " (ID: " + currentCustomer.toString().substring(0,8) + "...)" : ""));
+        System.out.println("Cliente Selecionado: " + customerName + (currentCustomer != null ? " (ID: " + currentCustomer.toString() + ")" : ""));
 
         String orderInfo = "Nenhum";
         if (currentOrder != null) {
             Optional<OrderView> orderOpt = orderController.getOrder(currentOrder);
-            orderInfo = orderOpt.map(o -> "ID: " + o.id().toString().substring(0,8) + "... | Status: " + o.orderStatus() + " | Total: R$ " + o.total().setScale(2, BigDecimal.ROUND_HALF_EVEN)).orElse("Desconhecido");
+            orderInfo = orderOpt.map(o -> "ID: " + o.id().toString() + " | Status: " + o.orderStatus() + " | Total: R$ " + o.total().setScale(2, RoundingMode.HALF_EVEN)).orElse("Desconhecido");
         }
         System.out.println("Pedido Atual: " + orderInfo);
         System.out.println("----------------------");
@@ -97,18 +107,22 @@ public class MainMenuHandler {
             System.out.println(" 1) Cadastrar cliente");
             System.out.println(" 2) Listar clientes");
             System.out.println(" 3) Selecionar cliente atual");
+            System.out.println(" 4) Atualizar cliente atual");
             System.out.println(" 0) Voltar");
             System.out.print("Escolha: ");
 
-            String opt = sc.nextLine().trim();
+            String opt = readLine().trim();
             try {
                 switch (opt) {
                     case "1" -> cadastrarCliente();
                     case "2" -> listarClientes();
                     case "3" -> selecionarClienteAtual();
+                    case "4" -> atualizarClienteAtual();
                     case "0" -> { return; }
                     default -> System.out.println("Opcao invalida.");
                 }
+            } catch (EndOfInput ex) {
+                throw ex;
             } catch (Exception ex) {
                 System.out.println("Erro: " + ex.getMessage());
             }
@@ -116,22 +130,32 @@ public class MainMenuHandler {
     }
 
     private void cadastrarCliente() {
-        System.out.print("Nome: "); String name = sc.nextLine().trim();
-        System.out.print("Documento (CPF/CNPJ): "); String doc = sc.nextLine().trim();
-        System.out.print("Email (opcional): "); String email = sc.nextLine().trim();
+        System.out.print("Nome: "); String name = readLine().trim();
+        System.out.print("Documento (CPF/CNPJ): "); String doc = readLine().trim();
+        System.out.print("Email (opcional): "); String email = readLine().trim();
         Response res = customerController.executeCreateCustomer(name, doc, email);
         System.out.println(res.getMessage());
+    }
+
+    private void atualizarClienteAtual() {
+        if (currentCustomer == null) { System.out.println("Selecione um cliente primeiro."); return; }
+        System.out.print("Novo nome (vazio mantém): ");
+        String name = readLine().trim();
+        System.out.print("Novo email (vazio mantém, - remove): ");
+        String email = readLine().trim();
+        System.out.println(customerController.executeUpdateCustomer(currentCustomer, name.isEmpty() ? null : name,
+                email.isEmpty() ? null : email.equals("-") ? "" : email).getMessage());
     }
 
     private void listarClientes() {
         List<CustomerView> all = customerController.listCustomers();
         if (all.isEmpty()) System.out.println("(vazio)");
-        else all.forEach(c -> System.out.printf("ID: %s | Nome: %s | Documento: %s | Email: %s%n", c.id().toString().substring(0,8), c.name(), c.document(), (c.email()==null?"-":c.email())));
+        else all.forEach(c -> System.out.printf("ID: %s | Nome: %s | Documento: %s | Email: %s%n", c.id().toString(), c.name(), c.document(), (c.email()==null?"-":c.email())));
     }
 
     private void selecionarClienteAtual() {
         System.out.print("Cliente (UUID | documento | parte do nome): ");
-        String input = sc.nextLine().trim();
+        String input = readLine().trim();
         UUID resolvedId = resolveCustomerId(input);
         if (resolvedId != null) {
             currentCustomer = resolvedId;
@@ -146,18 +170,22 @@ public class MainMenuHandler {
             System.out.println(" 1) Cadastrar produto");
             System.out.println(" 2) Listar produtos");
             System.out.println(" 3) Atualizar estoque");
+            System.out.println(" 4) Atualizar nome e preço");
             System.out.println(" 0) Voltar");
             System.out.print("Escolha: ");
 
-            String opt = sc.nextLine().trim();
+            String opt = readLine().trim();
             try {
                 switch (opt) {
                     case "1" -> cadastrarProduto();
                     case "2" -> listarProdutos();
                     case "3" -> atualizarEstoque();
+                    case "4" -> atualizarProduto();
                     case "0" -> { return; }
                     default -> System.out.println("Opcao invalida.");
                 }
+            } catch (EndOfInput ex) {
+                throw ex;
             } catch (Exception ex) {
                 System.out.println("Erro: " + ex.getMessage());
             }
@@ -165,9 +193,9 @@ public class MainMenuHandler {
     }
 
     private void cadastrarProduto() {
-        System.out.print("Nome do produto: "); String name = sc.nextLine().trim();
-        System.out.print("Preco base (ex 19.90): "); BigDecimal price = new BigDecimal(sc.nextLine().trim());
-        System.out.print("Estoque inicial: "); int stock = Integer.parseInt(sc.nextLine().trim());
+        System.out.print("Nome do produto: "); String name = readLine().trim();
+        System.out.print("Preco base (ex 19.90): "); BigDecimal price = new BigDecimal(readLine().trim());
+        System.out.print("Estoque inicial: "); int stock = Integer.parseInt(readLine().trim());
         Response res = productController.executeCreateProduct(name, price, stock);
         System.out.println(res.getMessage());
     }
@@ -175,7 +203,21 @@ public class MainMenuHandler {
     private void listarProdutos() {
         List<ProductView> all = productController.listProducts();
         if (all.isEmpty()) System.out.println("(vazio)");
-        else all.forEach(p -> System.out.printf("ID: %s | Nome: %s | Preço Base: %.2f | Estoque: %d%n", p.id().toString().substring(0,8), p.name(), p.basePrice(), p.stock()));
+        else all.forEach(p -> System.out.printf("ID: %s | Nome: %s | Preço Base: %.2f | Estoque: %d%n", p.id().toString(), p.name(), p.basePrice(), p.stock()));
+    }
+
+    private void atualizarProduto() {
+        listarProdutos();
+        UUID id = resolveProductId();
+        if (id == null) return;
+        var current = productController.getProduct(id);
+        if (current.isEmpty()) { System.out.println("Produto não encontrado."); return; }
+        System.out.print("Novo nome (vazio mantém): ");
+        String name = readLine().trim();
+        System.out.print("Novo preço (vazio mantém): ");
+        String price = readLine().trim();
+        System.out.println(productController.executeUpdateProduct(id, name.isEmpty() ? current.get().name() : name,
+                price.isEmpty() ? current.get().basePrice() : new BigDecimal(price), current.get().stock()).getMessage());
     }
 
     private void atualizarEstoque() {
@@ -184,7 +226,7 @@ public class MainMenuHandler {
         UUID pid = resolveProductId();
         if (pid == null) return;
         System.out.print("Quantidade a adicionar/remover (ex: 10 para adicionar, -5 para remover): ");
-        int quantityChange = Integer.parseInt(sc.nextLine().trim());
+        int quantityChange = Integer.parseInt(readLine().trim());
         Response res = productController.executeUpdateStock(pid, quantityChange);
         System.out.println(res.getMessage());
     }
@@ -207,7 +249,7 @@ public class MainMenuHandler {
             System.out.println(" 0) Voltar");
             System.out.print("Escolha: ");
 
-            String opt = sc.nextLine().trim();
+            String opt = readLine().trim();
             try {
                 switch (opt) {
                     case "1" -> criarPedido();
@@ -224,6 +266,8 @@ public class MainMenuHandler {
                     case "0" -> { return; }
                     default -> System.out.println("Opcao invalida.");
                 }
+            } catch (EndOfInput ex) {
+                throw ex;
             } catch (Exception ex) {
                 System.out.println("Erro: " + ex.getMessage());
             }
@@ -252,9 +296,9 @@ public class MainMenuHandler {
         Optional<ProductView> pv = productController.getProduct(pid);
         if (pv.isEmpty()) { System.out.println("Produto nao encontrado."); return; }
         System.out.printf("Preco de venda (snapshot) [sugestão: %.2f]: ", pv.get().basePrice());
-        String unitInput = sc.nextLine().trim();
+        String unitInput = readLine().trim();
         BigDecimal unit = unitInput.isEmpty() ? pv.get().basePrice() : new BigDecimal(unitInput);
-        System.out.print("Quantidade (Estoque disponível: " + pv.get().stock() + "): "); int qty = Integer.parseInt(sc.nextLine().trim());
+        System.out.print("Quantidade (Estoque disponível: " + pv.get().stock() + "): "); int qty = Integer.parseInt(readLine().trim());
 
         if (qty > pv.get().stock()) {
             System.out.println("Erro: Quantidade solicitada excede o estoque disponível.");
@@ -263,10 +307,6 @@ public class MainMenuHandler {
 
         String msg = orderController.executeAddItem(currentOrder, pid, unit, qty);
         System.out.println(msg);
-
-        if (msg.equals("Item adicionado ao pedido.")) {
-            productController.executeUpdateStock(pid, -qty); // Diminui o estoque
-        }
     }
 
     private void alterarQuantidadeItem() {
@@ -274,7 +314,7 @@ public class MainMenuHandler {
         verPedidoAtual();
         UUID pid = resolveProductId();
         if (pid == null) return;
-        System.out.print("Nova quantidade: "); int qty = Integer.parseInt(sc.nextLine().trim());
+        System.out.print("Nova quantidade: "); int qty = Integer.parseInt(readLine().trim());
         String msg = orderController.executeChangeItemQuantity(currentOrder, pid, qty);
         System.out.println(msg);
     }
@@ -314,19 +354,19 @@ public class MainMenuHandler {
         Optional<CustomerView> customerOpt = customerController.getCustomer(o.customerId());
 
         System.out.println("\n--- DETALHES DO PEDIDO ---");
-        System.out.println("ID do Pedido: " + o.id().toString().substring(0,8) + "...");
+        System.out.println("ID do Pedido: " + o.id().toString());
         System.out.println("Cliente: " + customerOpt.map(CustomerView::name).orElse("Desconhecido") + " (" + customerOpt.map(CustomerView::document).orElse("N/A") + ")");
         System.out.println("Status: " + o.orderStatus());
         System.out.println("Status Pagamento: " + o.paymentStatus());
-        System.out.println("Total: R$ " + o.total().setScale(2, BigDecimal.ROUND_HALF_EVEN));
+        System.out.println("Total: R$ " + o.total().setScale(2, RoundingMode.HALF_EVEN));
 
         if (o.items().isEmpty()) {
             System.out.println("  (Nenhum item no pedido)");
         } else {
             System.out.println("Itens:");
             o.items().forEach(item -> {
-                System.out.printf("  - %s (ID: %s...) | Qtd: %d | Preço Unit.: R$ %.2f | Subtotal: R$ %.2f%n",
-                        item.name(), item.productId().toString().substring(0,8), item.quantity(), item.unitPrice(), item.unitPrice().multiply(BigDecimal.valueOf(item.quantity())).setScale(2, BigDecimal.ROUND_HALF_EVEN));
+                System.out.printf("  - %s (ID: %s) | Qtd: %d | Preço Unit.: R$ %.2f | Subtotal: R$ %.2f%n",
+                        item.name(), item.productId().toString(), item.quantity(), item.unitPrice(), item.unitPrice().multiply(BigDecimal.valueOf(item.quantity())).setScale(2, RoundingMode.HALF_EVEN));
             });
         }
         System.out.println("--------------------------");
@@ -341,15 +381,16 @@ public class MainMenuHandler {
         System.out.println("\n--- TODOS OS PEDIDOS ---");
         allOrders.forEach(o -> {
             Optional<CustomerView> customerOpt = customerController.getCustomer(o.customerId());
-            System.out.printf("ID: %s... | Cliente: %s | Status: %s | Total: R$ %.2f%n",
-                    o.id().toString().substring(0,8), customerOpt.map(CustomerView::name).orElse("Desconhecido"), o.orderStatus(), o.total().setScale(2, BigDecimal.ROUND_HALF_EVEN));
+            System.out.printf("ID: %s | Cliente: %s | Status: %s | Total: R$ %.2f%n",
+                    o.id().toString(), customerOpt.map(CustomerView::name).orElse("Desconhecido"), o.orderStatus(), o.total().setScale(2, RoundingMode.HALF_EVEN));
         });
         System.out.println("------------------------");
     }
 
     private void listarPedidosPorCliente() {
         System.out.println("\n--- LISTAR PEDIDOS POR CLIENTE ---");
-        UUID customerId = resolveCustomerId(sc.nextLine().trim()); // Reutiliza resolveCustomerId
+        System.out.print("Cliente (UUID | documento | parte do nome): ");
+        UUID customerId = resolveCustomerId(readLine().trim());
         if (customerId == null) return;
 
         List<OrderView> customerOrders = orderController.listOrdersByCustomer(customerId);
@@ -360,20 +401,21 @@ public class MainMenuHandler {
         Optional<CustomerView> customerOpt = customerController.getCustomer(customerId);
         System.out.printf("\n--- PEDIDOS DO CLIENTE: %s (%s) ---\n", customerOpt.map(CustomerView::name).orElse("Desconhecido"), customerId);
         customerOrders.forEach(o -> {
-            System.out.printf("ID: %s... | Status: %s | Total: R$ %.2f%n",
-                    o.id().toString().substring(0,8), o.orderStatus(), o.total().setScale(2, BigDecimal.ROUND_HALF_EVEN));
+            System.out.printf("ID: %s | Status: %s | Total: R$ %.2f%n",
+                    o.id().toString(), o.orderStatus(), o.total().setScale(2, RoundingMode.HALF_EVEN));
         });
         System.out.println("----------------------------------");
     }
 
     private void selecionarPedidoAtual() {
         System.out.print("Digite o ID do pedido que deseja tornar o atual: ");
-        String input = sc.nextLine().trim();
+        String input = readLine().trim();
         try {
             UUID orderId = UUID.fromString(input);
             Optional<OrderView> orderOpt = orderController.getOrder(orderId);
             if (orderOpt.isPresent()) {
                 currentOrder = orderId;
+                currentCustomer = orderOpt.get().customerId();
                 System.out.println("Pedido " + currentOrder + " selecionado como atual.");
             } else {
                 System.out.println("Pedido não encontrado.");
@@ -385,7 +427,12 @@ public class MainMenuHandler {
 
     private UUID resolveCustomerId(String input) {
         // tenta UUID
-        try { return UUID.fromString(input); } catch (Exception ignore) {}
+        try {
+            UUID id = UUID.fromString(input);
+            if (customerController.getCustomer(id).isPresent()) return id;
+            System.out.println("Cliente não encontrado.");
+            return null;
+        } catch (IllegalArgumentException ignore) {}
 
         // tenta documento
         var byDoc = customerController.findByDocument(input);
@@ -403,10 +450,10 @@ public class MainMenuHandler {
         System.out.println("Varios clientes encontrados:");
         for (int i=0;i<matches.size();i++) {
             var c = matches.get(i);
-            System.out.printf(" %d) %s | %s | ID: %s...%n", i+1, c.name(), c.document(), c.id().toString().substring(0,8));
+            System.out.printf(" %d) %s | %s | ID: %s%n", i+1, c.name(), c.document(), c.id().toString());
         }
         System.out.print("Escolha [1-" + matches.size() + "]: ");
-        int idx = Integer.parseInt(sc.nextLine().trim());
+        int idx = Integer.parseInt(readLine().trim());
         if (idx < 1 || idx > matches.size()) {
             System.out.println("Indice inválido.");
             return null;
@@ -416,7 +463,7 @@ public class MainMenuHandler {
 
     private UUID resolveProductId() {
         System.out.print("Produto (UUID | parte do nome): ");
-        String input = sc.nextLine().trim();
+        String input = readLine().trim();
 
         // tenta UUID
         try { return UUID.fromString(input); } catch (Exception ignore) {}
@@ -433,10 +480,10 @@ public class MainMenuHandler {
         System.out.println("Varios produtos encontrados:");
         for (int i=0;i<matches.size();i++) {
             var p = matches.get(i);
-            System.out.printf(" %d) %s | Preço Base: %.2f | ID: %s...%n", i+1, p.name(), p.basePrice(), p.id().toString().substring(0,8));
+            System.out.printf(" %d) %s | Preço Base: %.2f | ID: %s%n", i+1, p.name(), p.basePrice(), p.id().toString());
         }
         System.out.print("Escolha [1-" + matches.size() + "]: ");
-        int idx = Integer.parseInt(sc.nextLine().trim());
+        int idx = Integer.parseInt(readLine().trim());
         if (idx < 1 || idx > matches.size()) {
             System.out.println("Indice inválido.");
             return null;

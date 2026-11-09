@@ -53,7 +53,7 @@ public class OrderController {
      * @return Um {@link Optional} contendo o ID do novo pedido se o cliente for encontrado, ou vazio caso contrário.
      */
     public Optional<UUID> executeCreateOrder(UUID customerId) {
-        if (customerGateway.getCustomer(customerId).isEmpty()) return Optional.empty();
+        if (customerId == null || customerGateway.getCustomer(customerId).filter(CustomerView::active).isEmpty()) return Optional.empty();
         return Optional.of(orderGateway.createOrder(customerId));
     }
 
@@ -71,7 +71,11 @@ public class OrderController {
         if (quantity <= 0) return "Quantidade inválida";
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) return "Preço inválido";
         try {
+            requireOpenOrder(orderId);
+            if (!pv.get().active()) throw new IllegalStateException("Produto inativo");
+            requireStock(pv.get(), quantity);
             orderGateway.addItem(orderId, productId, pv.get().name(), unitPrice, quantity);
+            productGateway.updateStock(productId, -quantity);
             return "Item adicionado ao pedido.";
         } catch (Exception e) {
             return "Erro ao adicionar item: " + e.getMessage();
@@ -97,7 +101,12 @@ public class OrderController {
     public String executeChangeItemQuantity(UUID orderId, UUID productId, int quantity) {
         if (quantity <= 0) return "Quantidade inválida";
         try {
+            var item = requireItem(orderId, productId);
+            var product = productGateway.getProduct(productId).orElseThrow(() -> new IllegalArgumentException("Produto não encontrado"));
+            int delta = quantity - item.quantity();
+            requireStock(product, delta);
             orderGateway.changeItemQuantity(orderId, productId, quantity);
+            productGateway.updateStock(productId, -delta);
             return "Quantidade alterada.";
         } catch (Exception e) {
             return "Erro ao alterar quantidade: " + e.getMessage();
@@ -112,11 +121,32 @@ public class OrderController {
      */
     public String executeRemoveItem(UUID orderId, UUID productId) {
         try {
+            var item = requireItem(orderId, productId);
+            var product = productGateway.getProduct(productId).orElseThrow(() -> new IllegalArgumentException("Produto não encontrado"));
+            requireStock(product, -item.quantity());
             orderGateway.removeItem(orderId, productId);
+            productGateway.updateStock(productId, item.quantity());
             return "Item removido.";
         } catch (Exception e) {
             return "Erro ao remover item: " + e.getMessage();
         }
+    }
+
+    private OrderView requireOpenOrder(UUID orderId) {
+        var order = orderGateway.getOrder(orderId).orElseThrow(() -> new IllegalArgumentException("Pedido não encontrado"));
+        if (!"OPEN".equals(order.orderStatus())) throw new IllegalStateException("Pedido não está OPEN");
+        return order;
+    }
+
+    private OrderItemView requireItem(UUID orderId, UUID productId) {
+        return requireOpenOrder(orderId).items().stream().filter(i -> i.productId().equals(productId)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+    }
+
+    private void requireStock(ProductView product, int quantityToReserve) {
+        long remaining = (long) product.stock() - quantityToReserve;
+        if (remaining < 0) throw new IllegalArgumentException("Estoque insuficiente");
+        if (remaining > Integer.MAX_VALUE) throw new IllegalArgumentException("Estoque excede o limite");
     }
 
     /**
