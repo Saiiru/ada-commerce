@@ -1,3 +1,15 @@
+# Order Management CLI
+
+**Objetivo:** Simular no terminal a evolução de pedidos e estoque, desde cadastros até pagamento e entrega fictícios.
+
+**Estado:** Trabalho em equipe, dados em memória; suite Java e workflow CI identificados, não executados aqui.
+
+**Documentação técnica, origem e próximos passos:** [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md)
+
+---
+
+## Material original preservado
+
 # Ada Commerce — CLI educacional em Java
 
 Projeto de estudo para cadastrar clientes e produtos e acompanhar pedidos pelo terminal.
