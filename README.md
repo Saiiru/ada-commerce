@@ -2,7 +2,7 @@
 
 **Objetivo:** Simular no terminal a evolução de pedidos e estoque, desde cadastros até pagamento e entrega fictícios.
 
-**Estado:** Trabalho em equipe, dados em memória; suite Java e workflow CI identificados, não executados aqui.
+**Estado:** Trabalho em equipe, dados em memória; testes JUnit e fluxo CLI executados localmente.
 
 **Documentação técnica, origem e próximos passos:** [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md)
 
@@ -25,8 +25,8 @@ ter somente um JDK mais recente não garante a execução. Não é necessário i
 globalmente. No Windows, substitua `./gradlew` por `gradlew.bat`.
 
 ```bash
-git clone https://github.com/Saiiru/ada-commerce.git
-cd ada-commerce
+git clone https://github.com/Saiiru/java-order-management-cli.git
+cd java-order-management-cli
 java -version
 ./gradlew clean build
 ./gradlew run --console=plain --quiet
@@ -120,3 +120,10 @@ Antonio Carlos (clientes/documentos), Thiago (produtos), Carlúcio (pedidos)
 e Urias (infraestrutura, pagamento, entrega, notificações e CLI).
 
 Licença MIT: consulte [LICENSE](LICENSE).
+
+
+## Verificação do código em 12/11/2026
+
+Gradle 8.8 offline JUnit: BUILD SUCCESSFUL; demo de pedido entregue PAID/DELIVERED, total R$ 350,99
+
+**Limitações:** Pagamentos, notificações e entregas são simulações; banco em memória, sem persistência real.

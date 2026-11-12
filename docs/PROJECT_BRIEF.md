@@ -5,7 +5,7 @@
 **Repositório atual:** https://github.com/Saiiru/java-order-management-cli
 **Nome anterior:** `ada-commerce`
 **Tecnologias observadas:** Java 17 · Gradle · CLI
-**Estado verificado por inspeção:** Trabalho em equipe, dados em memória; suite Java e workflow CI identificados, não executados aqui.
+**Estado verificado por inspeção:** Trabalho em equipe, dados em memória; testes JUnit executados localmente; workflow remoto não verificado.
 
 ## Problema e objetivo
 
@@ -15,7 +15,7 @@ Este é um estudo/experimento de engenharia de software; não é declarado como 
 
 ## O que existe atualmente
 
-Trabalho em equipe, dados em memória; suite Java e workflow CI identificados, não executados aqui. Os arquivos originais, licenças, histórico e eventuais instruções de instalação permanecem no repositório. Esta curadoria não executou todas as dependências nem comprovou operação funcional. Para executar, use as instruções originais do README se disponíveis; quando ausentes, a preparação do ambiente é uma tarefa pendente, não um comando inventado.
+Trabalho em equipe, dados em memória; testes JUnit executados localmente; workflow remoto não verificado. Os arquivos originais, licenças, histórico e eventuais instruções de instalação permanecem no repositório. Esta curadoria não executou todas as dependências nem comprovou operação funcional. Para executar, use as instruções originais do README se disponíveis; quando ausentes, a preparação do ambiente é uma tarefa pendente, não um comando inventado.
 
 ## Projeto, autoria e referências
 
@@ -35,3 +35,14 @@ Projeto educacional em equipe da Ada. Créditos, fontes de tutoriais e colaborad
 **Ainda não é:** sistema integrado à KORA, serviço em produção ou prova de maturidade sem testes.
 
 [Voltar ao portfólio SAIRU/BLACKSITE](https://saiiru.github.io/#projetos-independentes)
+
+
+## Verificação de funcionamento — 12/11/2026
+
+**Estado confirmado:** CLI validado localmente
+
+**Evidência:** Gradle 8.8 offline JUnit: BUILD SUCCESSFUL; demo de pedido entregue PAID/DELIVERED, total R$ 350,99
+
+**Limites e bloqueios:** Pagamentos, notificações e entregas são simulações; banco em memória, sem persistência real.
+
+Esta validação não implica integração à KORA nem certificação de produção. Não alterar histórico, licença e autoria dos tutoriais.
